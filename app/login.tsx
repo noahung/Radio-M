@@ -1,90 +1,112 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
-import { router } from 'expo-router';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
-import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
+import LottieView from 'lottie-react-native';
+
+type AppRoute = 
+  | '/'
+  | '/signup'
+  | '/(tabs)'
+  | '/login';
 
 export default function LoginScreen() {
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
-    Inter_700Bold,
+    Inter_600SemiBold,
   });
+  
+  const animationRef = useRef<LottieView>(null);
 
   if (!fontsLoaded) {
     return null;
   }
 
-  const handleSignUp = () => {
-    router.replace('/(tabs)');
+  const handleLogin = () => {
+    // Add your login logic here
+    router.replace('/(tabs)' as AppRoute);
   };
 
   const handleGuestLogin = () => {
-    router.replace('/(tabs)');
-  };
-
-  const handleFacebookLogin = () => {
-    // TODO: Implement Facebook login
-    console.log('Facebook login pressed');
-  };
-
-  const handleGoogleLogin = () => {
-    // TODO: Implement Google login
-    console.log('Google login pressed');
+    router.replace('/(tabs)' as AppRoute);
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={['rgba(0,0,0,0.8)', 'rgba(25, 25, 112, 0.8)']}
+        colors={['rgba(0,0,0,0.8)', 'rgba(25,25,112,0.8)']}
         style={styles.gradient}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Sign up</Text>
-            <Text style={styles.subtitle}>to start play</Text>
-          </View>
-
-          <View style={styles.form}>
-            <Text style={styles.label}>Phone Number</Text>
-            <View style={styles.inputContainer}>
-              <Text style={styles.prefix}>+95</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Your phone number"
-                placeholderTextColor="rgba(255,255,255,0.5)"
-                keyboardType="phone-pad"
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Image
+                source={require('../assets/images/login-illustration.png')}
+                style={styles.illustration}
+                resizeMode="contain"
               />
-              <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-                <Text style={styles.buttonText}>→</Text>
+              <Text style={styles.title}>Let's you in</Text>
+            </View>
+
+            <View style={styles.socialButtons}>
+              <TouchableOpacity style={styles.socialButton}>
+                <View style={[styles.iconContainer, {backgroundColor: '#1877F2'}]}>
+                  <Ionicons name="logo-facebook" size={20} color="#fff" />
+                </View>
+                <Text style={styles.socialButtonText}>Continue with Facebook</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.socialButton}>
+                <View style={[styles.iconContainer, {backgroundColor: '#fff'}]}>
+                  <Ionicons name="logo-google" size={20} color="#4285F4" />
+                </View>
+                <Text style={styles.socialButtonText}>Continue with Google</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.socialButton}>
+                <View style={[styles.iconContainer, {backgroundColor: '#000'}]}>
+                  <Ionicons name="logo-apple" size={20} color="#fff" />
+                </View>
+                <Text style={styles.socialButtonText}>Continue with Apple</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity 
+              style={styles.passwordButton}
+              onPress={() => router.push('/signup' as AppRoute)}
+            >
+              <Text style={styles.passwordButtonText}>Sign in with password</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.guestButton}
+              onPress={handleGuestLogin}
+            >
+              <Text style={styles.guestButtonText}>Continue as Guest</Text>
+            </TouchableOpacity>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => router.push('/signup' as AppRoute)}>
+                <Text style={styles.signUpText}>Sign up</Text>
               </TouchableOpacity>
             </View>
           </View>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.socialButtons}>
-            <TouchableOpacity style={styles.socialButton} onPress={handleFacebookLogin}>
-              <Ionicons name="logo-facebook" size={24} color="#fff" />
-              <Text style={styles.socialButtonText}>Continue with Facebook</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
-              <Ionicons name="logo-google" size={24} color="#fff" />
-              <Text style={styles.socialButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.guestButton} onPress={handleGuestLogin}>
-            <Text style={styles.guestButtonText}>Continue as Guest</Text>
-          </TouchableOpacity>
-        </View>
+        </ScrollView>
       </LinearGradient>
     </View>
   );
@@ -98,69 +120,62 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingVertical: 40,
+  },
   content: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
   },
   header: {
-    marginTop: 60,
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  title: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 32,
-    color: '#fff',
+  illustration: {
+    width: 180,
+    height: 180,
     marginBottom: 8,
   },
-  subtitle: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  form: {
-    marginTop: 48,
-  },
-  label: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 14,
+  title: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 26,
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: 24,
   },
-  inputContainer: {
+  socialButtons: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  socialButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderRadius: 16,
+    padding: 14,
+    gap: 12,
   },
-  prefix: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 16,
-    color: '#fff',
-    marginRight: 8,
-  },
-  input: {
-    flex: 1,
-    color: '#fff',
-    fontFamily: 'Inter_400Regular',
-    fontSize: 16,
-    paddingVertical: 16,
-  },
-  button: {
-    backgroundColor: '#FF1B6D',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonText: {
+  socialButtonText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 15,
     color: '#fff',
-    fontSize: 24,
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 32,
+    marginBottom: 24,
   },
   dividerLine: {
     flex: 1,
@@ -168,34 +183,50 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
   dividerText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: 'rgba(255,255,255,0.6)',
     marginHorizontal: 16,
   },
-  socialButtons: {
-    gap: 16,
-  },
-  socialButton: {
-    flexDirection: 'row',
+  passwordButton: {
+    backgroundColor: '#8B3DFF',
+    borderRadius: 16,
+    padding: 14,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
+    marginBottom: 14,
   },
-  socialButtonText: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 16,
+  passwordButtonText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 15,
     color: '#fff',
   },
   guestButton: {
-    marginTop: 24,
+    backgroundColor: 'transparent',
+    borderRadius: 16,
+    padding: 14,
     alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   guestButtonText: {
     fontFamily: 'Inter_500Medium',
+    fontSize: 15,
+    color: '#fff',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  footerText: {
+    fontFamily: 'Inter_400Regular',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    color: 'rgba(255,255,255,0.6)',
+  },
+  signUpText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 14,
+    color: '#8B3DFF',
   },
 }); 

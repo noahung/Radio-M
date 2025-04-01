@@ -8,6 +8,7 @@ interface Settings {
   isDarkMode: boolean;
   language: Language;
   notificationsEnabled: boolean;
+  isInitialized: boolean;
 }
 
 interface SettingsContextType extends Settings {
@@ -20,6 +21,7 @@ const defaultSettings: Settings = {
   isDarkMode: true,
   language: 'en',
   notificationsEnabled: true,
+  isInitialized: false,
 };
 
 const SettingsContext = createContext<SettingsContextType | null>(null);
@@ -37,16 +39,23 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     try {
       const storedSettings = await AsyncStorage.getItem('appSettings');
       if (storedSettings) {
-        setSettings(JSON.parse(storedSettings));
+        const parsedSettings = JSON.parse(storedSettings);
+        setSettings({
+          ...parsedSettings,
+          isInitialized: true,
+        });
       } else {
         // Initialize with system color scheme if available
         setSettings({
           ...defaultSettings,
           isDarkMode: systemColorScheme === 'dark',
+          isInitialized: true,
         });
       }
     } catch (error) {
       console.error('Error loading settings:', error);
+      // Set initialized even if there's an error to prevent infinite loading
+      setSettings(prev => ({ ...prev, isInitialized: true }));
     }
   };
 
@@ -83,6 +92,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     await saveSettings(newSettings);
   };
 
+  // Don't render children until settings are initialized
+  if (!settings.isInitialized) {
+    return null;
+  }
+
   return (
     <SettingsContext.Provider
       value={{
@@ -103,4 +117,6 @@ export const useSettings = () => {
     throw new Error('useSettings must be used within a SettingsProvider');
   }
   return context;
-}; 
+};
+
+export default SettingsProvider; 

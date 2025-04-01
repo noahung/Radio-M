@@ -9,7 +9,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { stations } from '../../data/stations';
 import Slider from '@react-native-community/slider';
-import { useAudio } from '../(tabs)/_layout';
+import { useAudio } from '../contexts/AudioContext';
 
 const SLEEP_TIMER_OPTIONS = [
   { label: '5 minutes', value: 5 },
@@ -83,15 +83,6 @@ export default function PlayerScreen() {
         audioState.setSound(null);
       }
       
-      // Configure audio mode
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        staysActiveInBackground: true,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
-      });
-
       // Create and load new sound
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: station.streamUrl },

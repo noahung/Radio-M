@@ -95,4 +95,6 @@ export const translations = {
     stationUnavailable: 'ရေဒီယိုလှိုင်းသည် ယာယီမရနိုင်ပါ။',
     tryAgain: 'ထပ်မံကြိုးစားပါ။',
   },
-}; 
+};
+
+export default translations; 

@@ -17,7 +17,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.radiom.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -32,7 +33,10 @@
       "output": "single",
       "favicon": "./assets/images/icon.png"
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      "expo-av"
+    ],
     "experiments": {
       "typedRoutes": true
     }

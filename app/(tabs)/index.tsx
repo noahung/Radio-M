@@ -23,6 +23,7 @@ type StationWithFavorites = {
 
 export default function HomeScreen() {
   const [stationsWithFavorites, setStationsWithFavorites] = useState<StationWithFavorites[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -44,12 +45,14 @@ export default function HomeScreen() {
       }));
       
       setStationsWithFavorites(enhanced);
+      setIsInitialized(true);
     } catch (error) {
       console.error('Error loading favorites:', error);
       setStationsWithFavorites(stations.map(station => ({
         ...station,
         isFavorite: false
       })));
+      setIsInitialized(true);
     }
   };
 
@@ -123,8 +126,17 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
-  if (!fontsLoaded) {
-    return null;
+  if (!fontsLoaded || !isInitialized) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="light" />
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Loading...</Text>
+          </View>
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -249,9 +261,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    alignSelf: 'flex-end',
   },
 }); 

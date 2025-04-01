@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useAudio } from '../(tabs)/_layout';
+import { useAudio } from '../contexts/AudioContext';
 
 export default function MiniPlayer() {
   const audioState = useAudio();
