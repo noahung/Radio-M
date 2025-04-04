@@ -15,6 +15,7 @@ export default function LoginScreen() {
   const handleGuestLogin = async () => {
     try {
       await AsyncStorage.setItem('userToken', 'guest');
+      // @ts-ignore - Router type is incorrect
       router.replace('/(tabs)/home');
     } catch (err) {
       setError('Failed to login as guest');

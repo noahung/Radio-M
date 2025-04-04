@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ScrollView, Switch, Modal, Linking, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudio } from '../contexts/AudioContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { translations } from '../i18n/translations';
+import { LinearGradient } from 'expo-linear-gradient';
+import { WebView } from 'react-native-webview';
 
 interface UserData {
   name: string;
@@ -36,6 +38,9 @@ export default function ProfileScreen() {
   const t = translations[language]; // Get translations based on current language
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showWebViewModal, setShowWebViewModal] = useState(false);
+  const [isWebViewLoading, setIsWebViewLoading] = useState(true);
   
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -91,7 +96,7 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogoutConfirm = async () => {
     try {
       // Stop any playing audio
       if (audioContext.currentStation) {
@@ -114,111 +119,177 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={[styles.container, theme === 'light' && { backgroundColor: '#F5F5F7' }]}>
-      <StatusBar style={theme === 'dark' ? "light" : "dark"} />
-      
-      <ScrollView 
-        style={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}
+    <View style={styles.container}>
+      <StatusBar style="light" />
+      <LinearGradient
+        colors={['rgba(0,0,0,0.8)', 'rgba(25,25,112,0.8)']}
+        style={styles.gradient}
       >
-        <View style={styles.header}>
-          <View style={styles.profileSection}>
-            <View style={styles.avatarContainer}>
-              <Image
-                source={require('../../assets/avatars/avatar1.png')}
-                style={styles.avatar}
-              />
-              <View style={styles.premiumBadge}>
-                <Ionicons name="star" size={12} color="#fff" />
+        <ScrollView 
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <View style={styles.header}>
+            <View style={styles.profileSection}>
+              <View style={styles.avatarContainer}>
+                <Image
+                  source={require('../../assets/avatars/avatar1.png')}
+                  style={styles.avatar}
+                />
+                <View style={styles.premiumBadge}>
+                  <Ionicons name="star" size={12} color="#fff" />
+                </View>
+              </View>
+              
+              <View style={styles.userInfo}>
+                <Text style={styles.userName}>{userData.name}</Text>
+                <Text style={styles.userEmail}>andrew.ainsley@example.com</Text>
+                {userData.status && (
+                  <Text style={styles.userStatus}>
+                    {userData.status} {userData.country?.flag || '🌍'}
+                  </Text>
+                )}
               </View>
             </View>
-            
-            <View style={styles.userInfo}>
-              <Text style={[styles.userName, theme === 'light' && styles.lightText]}>{userData.name}</Text>
-              <Text style={[styles.userEmail, theme === 'light' && styles.lightSubtext]}>andrew.ainsley@example.com</Text>
-              {userData.status && (
-                <Text style={[styles.userStatus, theme === 'light' && styles.lightSubtext]}>
-                  {userData.status} {userData.country?.flag || '🌍'}
+          </View>
+          
+          <View style={styles.premiumCard}>
+            <View style={styles.premiumTitleContainer}>
+              <Ionicons name="cafe" size={24} color="#CDAF95" />
+              <Text style={styles.premiumTitle}>Buy me a coffee!</Text>
+            </View>
+            <Text style={styles.premiumDescription}>Enjoying Radio M? Please support the fellow away-from-home burmese who developed this app. ❤️</Text>
+            <TouchableOpacity 
+              style={styles.premiumButton}
+              onPress={() => setShowWebViewModal(true)}
+            >
+              <View style={styles.buttonContent}>
+                <Ionicons name="logo-paypal" size={18} color="#fff" />
+                <Text style={styles.premiumButtonText}>Support Developer</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.menuContainer}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/profile/edit' as any)}
+            >
+              <View style={styles.menuIconContainer}>
+                <Ionicons name="person-outline" size={22} color="#fff" />
+              </View>
+              <Text style={styles.menuTitle}>{t.editProfile}</Text>
+              <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.5)" />
+            </TouchableOpacity>
+
+            <View style={styles.menuItem}>
+              <View style={styles.menuIconContainer}>
+                <Ionicons name="notifications-outline" size={22} color="#fff" />
+              </View>
+              <Text style={styles.menuTitle}>{t.notifications}</Text>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={toggleNotifications}
+                trackColor={{ false: '#767577', true: '#8f47ff' }}
+                thumbColor={notificationsEnabled ? '#f4f3f4' : '#f4f3f4'}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/profile/language' as any)}
+            >
+              <View style={styles.menuIconContainer}>
+                <Ionicons name="globe-outline" size={22} color="#fff" />
+              </View>
+              <Text style={styles.menuTitle}>{t.language}</Text>
+              <View style={styles.languageInfo}>
+                <Text style={styles.languageText}>
+                  {language === 'en' ? 'English' : 'မြန်မာ'}
                 </Text>
-              )}
-            </View>
+                <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.5)" />
+              </View>
+            </TouchableOpacity>
           </View>
-        </View>
-        
-        <View style={[styles.premiumCard, theme === 'light' && styles.lightPremiumCard]}>
-          <Text style={[styles.premiumTitle, theme === 'light' && styles.lightText]}>{t.enjoyAllBenefits}</Text>
-          <Text style={[styles.premiumDescription, theme === 'light' && styles.lightSubtext]}>{t.getUnlimitedAccess}</Text>
-          <TouchableOpacity style={styles.premiumButton}>
-            <Text style={styles.premiumButtonText}>{t.getPremium}</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <View style={[styles.menuContainer, theme === 'light' && styles.lightMenuContainer]}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push('/profile/edit' as any)}
+          
+          <TouchableOpacity 
+            style={styles.logoutButton}
+            onPress={() => setShowLogoutModal(true)}
           >
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="person-outline" size={22} color={theme === 'dark' ? "#fff" : "#000"} />
-            </View>
-            <Text style={[styles.menuTitle, theme === 'light' && styles.lightText]}>{t.editProfile}</Text>
-            <Ionicons name="chevron-forward" size={20} color={theme === 'dark' ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)"} />
+            <Text style={styles.logoutText}>{t.logout}</Text>
           </TouchableOpacity>
+          
+          {/* Bottom padding to ensure logout button is visible with mini player */}
+          <View style={styles.bottomPadding} />
+        </ScrollView>
+      </LinearGradient>
 
-          <View style={styles.menuItem}>
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="notifications-outline" size={22} color={theme === 'dark' ? "#fff" : "#000"} />
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Logout</Text>
+            <Text style={styles.modalMessage}>Are you sure you want to log out?</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setShowLogoutModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.logoutModalButton]}
+                onPress={() => {
+                  setShowLogoutModal(false);
+                  handleLogoutConfirm();
+                }}
+              >
+                <Text style={styles.logoutModalButtonText}>Yes, Logout</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={[styles.menuTitle, theme === 'light' && styles.lightText]}>{t.notifications}</Text>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={toggleNotifications}
-              trackColor={{ false: '#767577', true: '#8f47ff' }}
-              thumbColor={notificationsEnabled ? '#f4f3f4' : '#f4f3f4'}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push('/profile/language' as any)}
-          >
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="globe-outline" size={22} color={theme === 'dark' ? "#fff" : "#000"} />
-            </View>
-            <Text style={[styles.menuTitle, theme === 'light' && styles.lightText]}>{t.language}</Text>
-            <View style={styles.languageInfo}>
-              <Text style={[styles.languageText, theme === 'light' && styles.lightSubtext]}>
-                {language === 'en' ? 'English' : 'မြန်မာ'}
-              </Text>
-              <Ionicons name="chevron-forward" size={20} color={theme === 'dark' ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)"} />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.menuItem}>
-            <View style={styles.menuIconContainer}>
-              <Ionicons name={theme === 'dark' ? "moon-outline" : "sunny-outline"} size={22} color={theme === 'dark' ? "#fff" : "#000"} />
-            </View>
-            <Text style={[styles.menuTitle, theme === 'light' && styles.lightText]}>{t.darkMode}</Text>
-            <Switch
-              value={theme === 'dark'}
-              onValueChange={toggleTheme}
-              trackColor={{ false: '#767577', true: '#8f47ff' }}
-              thumbColor={theme === 'dark' ? '#f4f3f4' : '#f4f3f4'}
-            />
           </View>
         </View>
-        
-        <TouchableOpacity 
-          style={[styles.logoutButton, theme === 'light' && styles.lightLogoutButton]}
-          onPress={handleLogout}
-        >
-          <Text style={styles.logoutText}>{t.logout}</Text>
-        </TouchableOpacity>
-        
-        {/* Bottom padding to ensure logout button is visible with mini player */}
-        <View style={styles.bottomPadding} />
-      </ScrollView>
+      </Modal>
+
+      {/* PayPal WebView Modal */}
+      <Modal
+        visible={showWebViewModal}
+        transparent={false}
+        animationType="slide"
+        onRequestClose={() => setShowWebViewModal(false)}
+      >
+        <View style={styles.webViewContainer}>
+          <View style={styles.webViewHeader}>
+            <TouchableOpacity 
+              style={styles.webViewCloseButton}
+              onPress={() => setShowWebViewModal(false)}
+            >
+              <Ionicons name="close" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.webViewTitle}>Support Developer</Text>
+            <View style={styles.webViewHeaderSpacer} />
+          </View>
+          
+          <WebView
+            source={{ uri: 'https://www.paypal.com/paypalme/noahaung' }}
+            style={styles.webView}
+            onLoadStart={() => setIsWebViewLoading(true)}
+            onLoadEnd={() => setIsWebViewLoading(false)}
+          />
+          
+          {isWebViewLoading && (
+            <View style={styles.webViewLoadingContainer}>
+              <ActivityIndicator size="large" color="#8B3DFF" />
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -228,15 +299,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  scrollContainer: {
+  gradient: {
     flex: 1,
   },
+  scrollContainer: {
+    flex: 1,
+    padding: 24,
+  },
   contentContainer: {
-    paddingBottom: 100, // Extra padding to ensure content is visible with mini player
+    paddingBottom: 100,
   },
   header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
+    marginTop: 48,
     marginBottom: 24,
   },
   profileSection: {
@@ -245,6 +319,7 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     position: 'relative',
+    marginRight: 16,
   },
   avatar: {
     width: 80,
@@ -255,81 +330,95 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#FF1B6D',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#8B3DFF',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
   },
   userInfo: {
-    marginLeft: 16,
+    flex: 1,
   },
   userName: {
     fontFamily: 'Inter_700Bold',
-    fontSize: 22,
+    fontSize: 24,
     color: '#fff',
+    marginBottom: 4,
   },
   userEmail: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: 'rgba(255,255,255,0.6)',
-    marginTop: 4,
+    marginBottom: 4,
   },
   userStatus: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 6,
+    color: 'rgba(255,255,255,0.6)',
   },
   premiumCard: {
-    backgroundColor: '#1F1F24',
+    backgroundColor: 'rgba(114, 77, 55, 0.3)',
     borderRadius: 16,
-    padding: 24,
-    marginHorizontal: 20,
+    padding: 20,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(205, 175, 149, 0.3)',
+  },
+  premiumTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   premiumTitle: {
     fontFamily: 'Inter_700Bold',
     fontSize: 18,
     color: '#fff',
-    marginBottom: 8,
+    marginLeft: 8,
   },
   premiumDescription: {
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 16,
+    lineHeight: 20,
   },
   premiumButton: {
-    backgroundColor: '#FF1B6D',
+    backgroundColor: '#8B3DFF',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
   },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   premiumButtonText: {
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 16,
+    fontSize: 14,
     color: '#fff',
+    marginLeft: 8,
   },
   menuContainer: {
-    backgroundColor: '#1F1F24',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 16,
-    marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   menuIconContainer: {
-    width: 24,
-    marginRight: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   menuTitle: {
     flex: 1,
@@ -348,36 +437,108 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   logoutButton: {
-    backgroundColor: '#1F1F24',
-    borderRadius: 16,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    paddingVertical: 16,
+    backgroundColor: 'rgba(255,27,109,0.1)',
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
   },
   logoutText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 16,
-    color: '#FF3B30',
+    color: '#FF1B6D',
   },
   bottomPadding: {
-    height: 80, // Extra padding at bottom
+    height: 40,
   },
-  // Light mode styles
-  lightText: {
-    color: '#000',
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  lightSubtext: {
-    color: 'rgba(0,0,0,0.6)',
+  modalContent: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    maxWidth: 340,
   },
-  lightPremiumCard: {
-    backgroundColor: '#F0F0F5',
+  modalTitle: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 20,
+    color: '#FF1B6D',
+    marginBottom: 12,
   },
-  lightMenuContainer: {
-    backgroundColor: '#F0F0F5',
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+  modalMessage: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 16,
+    color: '#fff',
+    marginBottom: 24,
   },
-  lightLogoutButton: {
-    backgroundColor: '#F0F0F5',
-  }
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  logoutModalButton: {
+    backgroundColor: '#8B3DFF',
+  },
+  cancelButtonText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 16,
+    color: '#fff',
+  },
+  logoutModalButtonText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 16,
+    color: '#fff',
+  },
+  webViewContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  webViewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1A1A1A',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  webViewTitle: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 18,
+    color: '#fff',
+  },
+  webViewCloseButton: {
+    padding: 8,
+  },
+  webViewHeaderSpacer: {
+    width: 40, // Same width as close button for balance
+  },
+  webView: {
+    flex: 1,
+  },
+  webViewLoadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
 });

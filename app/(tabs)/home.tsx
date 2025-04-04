@@ -158,39 +158,44 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Hello Miau</Text>
-          <Text style={styles.subtitle}>Welcome back!</Text>
+      <LinearGradient
+        colors={['rgba(0,0,0,0.8)', 'rgba(25,25,112,0.8)']}
+        style={styles.gradient}
+      >
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Hello Miau</Text>
+            <Text style={styles.subtitle}>Welcome back!</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push('/profile')}>
+            <Image
+              source={require('../../assets/avatars/avatar1.png')}
+              style={styles.avatar}
+            />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => router.push('/profile')}>
-          <Image
-            source={require('../../assets/avatars/avatar1.png')}
-            style={styles.avatar}
-          />
-        </TouchableOpacity>
-      </View>
 
-      <View style={styles.featuredSection}>
-        <Text style={styles.sectionTitle}>Featured Stations</Text>
-        <TouchableOpacity 
-          style={styles.discoverButton}
-          onPress={() => router.push('/(tabs)/search')}
-        >
-          <Text style={styles.discoverButtonText}>Discover More</Text>
-          <Ionicons name="chevron-forward" size={16} color="#8f47ff" />
-        </TouchableOpacity>
-      </View>
+        <View style={styles.featuredSection}>
+          <Text style={styles.sectionTitle}>Featured Stations</Text>
+          <TouchableOpacity 
+            style={styles.discoverButton}
+            onPress={() => router.push('/(tabs)/search')}
+          >
+            <Text style={styles.discoverButtonText}>Discover More</Text>
+            <Ionicons name="chevron-forward" size={16} color="#8f47ff" />
+          </TouchableOpacity>
+        </View>
 
-      <FlatList
-        data={randomizedStations}
-        renderItem={renderStationCard}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.stationGrid}
-        showsVerticalScrollIndicator={false}
-      />
+        <FlatList
+          data={randomizedStations}
+          renderItem={renderStationCard}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          contentContainerStyle={styles.stationGrid}
+          showsVerticalScrollIndicator={false}
+        />
+      </LinearGradient>
     </View>
   );
 }
@@ -199,6 +204,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  gradient: {
+    flex: 1,
     padding: 24,
   },
   header: {

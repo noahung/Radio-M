@@ -18,7 +18,7 @@ export default function TabLayout() {
             height: 60,
             paddingBottom: 8,
           },
-          tabBarActiveTintColor: '#FF1B6D',
+          tabBarActiveTintColor: '#8B3DFF',
           tabBarInactiveTintColor: 'rgba(255,255,255,0.6)',
           tabBarLabelStyle: {
             fontFamily: 'Inter_500Medium',
@@ -30,9 +30,9 @@ export default function TabLayout() {
         <Tabs.Screen
           name="home"
           options={{
-            title: 'All Stations',
+            title: 'Home',
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="radio-outline" size={size} color={color} />
+              <Ionicons name="home-outline" size={size} color={color} />
             ),
           }}
         />
@@ -41,7 +41,7 @@ export default function TabLayout() {
           options={{
             title: 'Discover',
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="compass-outline" size={size} color={color} />
+              <Ionicons name="compass" size={size} color={color} />
             ),
           }}
         />
@@ -50,7 +50,7 @@ export default function TabLayout() {
           options={{
             title: 'Library',
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="library-outline" size={size} color={color} />
+              <Ionicons name="list-outline" size={size} color={color} />
             ),
           }}
         />

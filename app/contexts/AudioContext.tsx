@@ -1,7 +1,15 @@
 import { createContext, useContext, useRef, useState, useEffect } from 'react';
 import { Audio } from 'expo-av';
 import { Station } from '../../data/stations';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
+import { Asset } from 'expo-asset';
+import * as MediaLibrary from 'expo-media-library';
+import {
+  configureAudioSession,
+  showPlaybackNotification,
+  dismissPlaybackNotification,
+  setupNotificationHandlers
+} from '../services/AudioService';
 
 type AudioState = {
   sound: Audio.Sound | null;
@@ -32,23 +40,49 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const fadeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const originalVolumeRef = useRef<number>(1);
+  const notificationListenerRef = useRef<any>(null);
 
+  // Setup initial audio mode and notification handlers
   useEffect(() => {
     let mounted = true;
 
     const setupAudio = async () => {
       try {
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          staysActiveInBackground: true,
-          playsInSilentModeIOS: true,
-          shouldDuckAndroid: true,
-          playThroughEarpieceAndroid: false,
-        });
+        // Request permissions if on iOS
+        if (Platform.OS === 'ios') {
+          await MediaLibrary.requestPermissionsAsync();
+        }
+
+        // Configure audio session with our service
+        const configured = await configureAudioSession();
         
-        if (mounted) {
+        if (mounted && configured) {
           setIsInitialized(true);
         }
+        
+        // Setup notification handlers for media controls
+        notificationListenerRef.current = setupNotificationHandlers(
+          // Play
+          async () => {
+            if (sound) {
+              await sound.playAsync();
+              setIsPlaying(true);
+              updateNotification();
+            }
+          },
+          // Pause
+          async () => {
+            if (sound) {
+              await sound.pauseAsync();
+              setIsPlaying(false);
+              updateNotification();
+            }
+          },
+          // Stop
+          async () => {
+            unloadAudio();
+          }
+        );
       } catch (error) {
         console.error('Error setting up audio:', error);
         if (mounted) {
@@ -65,8 +99,134 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       if (sound) {
         sound.unloadAsync();
       }
+      dismissNotification();
+      
+      // Clean up notification handler
+      if (notificationListenerRef.current) {
+        notificationListenerRef.current.remove();
+      }
     };
   }, []);
+
+  // Update notification when current station or playback state changes
+  useEffect(() => {
+    updateNotification();
+  }, [currentStation, isPlaying]);
+
+  const updateNotification = async () => {
+    if (currentStation && isPlaying) {
+      // Show playback notification with station info
+      await showPlaybackNotification(
+        currentStation.name,
+        currentStation.description,
+        isPlaying
+      );
+    } else if (!isPlaying && currentStation) {
+      // Update notification to paused state
+      await showPlaybackNotification(
+        currentStation.name,
+        'Paused - ' + currentStation.description,
+        false
+      );
+    } else {
+      // No station or not playing, dismiss notification
+      await dismissNotification();
+    }
+  };
+
+  const dismissNotification = async () => {
+    await dismissPlaybackNotification();
+  };
+
+  // Media session API for web platforms
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      if (currentStation) {
+        updateMediaSessionMetadata(currentStation);
+      } else {
+        clearMediaSession();
+      }
+    }
+  }, [currentStation]);
+
+  // Update media session playback state when isPlaying changes (web only)
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      updateMediaSessionPlaybackState();
+    }
+  }, [isPlaying]);
+
+  const updateMediaSessionMetadata = async (station: Station) => {
+    if (!station || Platform.OS !== 'web') return;
+
+    try {
+      // MediaSession API is only available on web
+      if ('mediaSession' in navigator) {
+        const artwork = [];
+        
+        if (station.imageUrl) {
+          // Convert require() image to URL for Web
+          let imageUrl = '';
+          if (typeof station.imageUrl === 'number') {
+            const asset = Asset.fromModule(station.imageUrl);
+            await asset.downloadAsync();
+            imageUrl = asset.uri || '';
+          }
+          
+          if (imageUrl) {
+            artwork.push({
+              src: imageUrl,
+              sizes: '512x512',
+              type: 'image/png'
+            });
+          }
+        }
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: 'Radio M',
+          album: station.description,
+          artwork: artwork
+        });
+
+        // Set up action handlers
+        navigator.mediaSession.setActionHandler('play', () => {
+          togglePlayPause();
+        });
+        
+        navigator.mediaSession.setActionHandler('pause', () => {
+          togglePlayPause();
+        });
+        
+        navigator.mediaSession.setActionHandler('stop', () => {
+          unloadAudio();
+        });
+      }
+    } catch (error) {
+      console.error('Error updating media session metadata:', error);
+    }
+  };
+
+  const updateMediaSessionPlaybackState = () => {
+    try {
+      if (Platform.OS === 'web' && 'mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+      }
+    } catch (error) {
+      console.error('Error updating media session playback state:', error);
+    }
+  };
+
+  const clearMediaSession = () => {
+    try {
+      if (Platform.OS === 'web' && 'mediaSession' in navigator) {
+        navigator.mediaSession.metadata = null;
+        navigator.mediaSession.playbackState = 'none';
+      }
+    } catch (error) {
+      console.error('Error clearing media session:', error);
+    }
+  };
 
   const cancelSleepTimer = () => {
     if (timerRef.current) {
@@ -116,6 +276,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
               await sound.pauseAsync();
               setIsPlaying(false);
               await sound.setVolumeAsync(originalVolumeRef.current);
+              updateNotification();
             } else {
               const newVolume = currentVolume - (volumeStep * currentStep);
               await sound.setVolumeAsync(Math.max(0, newVolume));
@@ -139,6 +300,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         await sound.playAsync();
       }
       setIsPlaying(!isPlaying);
+      updateNotification();
     } catch (error) {
       console.error('Error toggling play/pause:', error);
     }
@@ -154,6 +316,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       cancelSleepTimer();
       setCurrentStation(null);
       setIsPlaying(false);
+      dismissNotification();
+      clearMediaSession();
     } catch (error) {
       console.error('Error unloading audio:', error);
     }

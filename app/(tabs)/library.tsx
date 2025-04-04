@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Modal, TextInput, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { stations } from '../../data/stations';
 
 type Playlist = {
@@ -17,6 +17,7 @@ type Playlist = {
 
 export default function LibraryScreen() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [favoriteStations, setFavoriteStations] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [fontsLoaded] = useFonts({
@@ -26,20 +27,39 @@ export default function LibraryScreen() {
     Inter_700Bold,
   });
 
-  useEffect(() => {
-    loadPlaylists();
-  }, []);
-
-  const loadPlaylists = async () => {
+  const loadData = useCallback(async () => {
     try {
+      // Load playlists
       const playlistsData = await AsyncStorage.getItem('playlists');
       if (playlistsData) {
         setPlaylists(JSON.parse(playlistsData));
       }
+
+      // Load favorites
+      const favoritesData = await AsyncStorage.getItem('favoriteStations');
+      if (favoritesData) {
+        const favoritesObj = JSON.parse(favoritesData);
+        // Convert object to array of station IDs that are favorites
+        const favoriteIds = Object.keys(favoritesObj).filter(id => favoritesObj[id]);
+        setFavoriteStations(favoriteIds);
+      }
     } catch (error) {
-      console.error('Error loading playlists:', error);
+      console.error('Error loading data:', error);
     }
-  };
+  }, []);
+
+  // Load data when component mounts
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Reload data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+      return () => {};
+    }, [loadData])
+  );
 
   const createNewPlaylist = async () => {
     setShowCreateModal(true);
@@ -126,6 +146,37 @@ export default function LibraryScreen() {
     );
   };
 
+  const renderFavoriteStation = ({ item: stationId }: { item: string }) => {
+    const station = stations.find(s => s.id === stationId);
+    if (!station) return null;
+
+    return (
+      <TouchableOpacity
+        style={styles.stationItem}
+        onPress={() => router.push(`/player/${stationId}`)}
+      >
+        {station.imageUrl && (
+          <View style={styles.stationImageContainer}>
+            <Image
+              source={station.imageUrl}
+              style={styles.stationImage}
+              resizeMode="cover"
+            />
+          </View>
+        )}
+        <View style={styles.stationInfo}>
+          <Text style={styles.stationName}>{station.name}</Text>
+          <Text style={styles.stationDescription} numberOfLines={1}>
+            {station.description}
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.playButton}>
+          <Ionicons name="play" size={20} color="#fff" />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
+
   if (!fontsLoaded) {
     return null;
   }
@@ -147,22 +198,43 @@ export default function LibraryScreen() {
             </TouchableOpacity>
           </View>
 
-          {playlists.length > 0 ? (
-            <FlatList
-              data={playlists}
-              renderItem={renderPlaylist}
-              keyExtractor={item => item.id}
-              contentContainerStyle={styles.playlistList}
-            />
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="library-outline" size={64} color="rgba(255,255,255,0.2)" />
-              <Text style={styles.emptyTitle}>No Playlists Yet</Text>
-              <Text style={styles.emptyDescription}>
-                Create your first playlist by tapping the + button above
-              </Text>
-            </View>
-          )}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Favorites</Text>
+            {favoriteStations.length > 0 ? (
+              <FlatList
+                data={favoriteStations}
+                renderItem={renderFavoriteStation}
+                keyExtractor={item => item}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.favoritesList}
+              />
+            ) : (
+              <View style={styles.emptySection}>
+                <Text style={styles.emptyText}>No favorites yet</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Playlists</Text>
+            {playlists.length > 0 ? (
+              <FlatList
+                data={playlists}
+                renderItem={renderPlaylist}
+                keyExtractor={item => item.id}
+                contentContainerStyle={styles.playlistList}
+              />
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="library-outline" size={64} color="rgba(255,255,255,0.2)" />
+                <Text style={styles.emptyTitle}>No Playlists Yet</Text>
+                <Text style={styles.emptyDescription}>
+                  Create your first playlist by tapping the + button above
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </LinearGradient>
 
@@ -342,5 +414,70 @@ const styles = StyleSheet.create({
   },
   modalButtonTextCreate: {
     color: '#fff',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 18,
+    color: '#fff',
+    marginBottom: 16,
+  },
+  favoritesList: {
+    paddingBottom: 8,
+  },
+  stationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    padding: 12,
+    marginRight: 12,
+    width: 250,
+  },
+  stationImageContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginRight: 12,
+  },
+  stationImage: {
+    width: '100%',
+    height: '100%',
+  },
+  stationInfo: {
+    flex: 1,
+  },
+  stationName: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 14,
+    color: '#fff',
+    marginBottom: 4,
+  },
+  stationDescription: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+  },
+  playButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(139, 61, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptySection: {
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.4)',
   },
 }); 

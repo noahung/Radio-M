@@ -7,8 +7,8 @@ import { router } from 'expo-router';
 import { stations, Station } from '../../data/stations';
 
 // Reduced sizes for better performance
-const ITEM_WIDTH = 160;
-const ITEM_MARGIN = 12;
+const ITEM_WIDTH = 140;
+const ITEM_MARGIN = 8;
 const ITEM_TOTAL_WIDTH = ITEM_WIDTH + ITEM_MARGIN;
 
 interface StationCardProps {
@@ -120,6 +120,9 @@ export default function DiscoverScreen() {
           style={styles.content} 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          removeClippedSubviews={true}
+          scrollEventThrottle={16}
+          overScrollMode="never"
         >
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Discover</Text>
@@ -173,6 +176,7 @@ export default function DiscoverScreen() {
                 snapToAlignment="start"
                 scrollEventThrottle={16}
                 bounces={false}
+                overScrollMode="never"
               />
 
               <View style={styles.sectionHeader}>
@@ -190,6 +194,7 @@ export default function DiscoverScreen() {
             maxToRenderPerBatch={4}
             windowSize={5}
             removeClippedSubviews={true}
+            overScrollMode="never"
           />
         </ScrollView>
       </LinearGradient>
@@ -257,11 +262,11 @@ const styles = StyleSheet.create({
     color: '#FF1B6D',
   },
   popularStationsContainer: {
-    marginBottom: 32,
-    height: ITEM_WIDTH + 58, // Image height + text
+    marginBottom: 24,
+    height: ITEM_WIDTH + 48,
   },
   popularStationsContent: {
-    paddingRight: 24,
+    paddingRight: 16,
   },
   popularStationCard: {
     marginRight: ITEM_MARGIN,
@@ -269,18 +274,18 @@ const styles = StyleSheet.create({
   popularStationImage: {
     width: ITEM_WIDTH,
     height: ITEM_WIDTH,
-    borderRadius: 12,
-    marginBottom: 8,
+    borderRadius: 8,
+    marginBottom: 6,
   },
   popularStationName: {
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 14,
+    fontSize: 13,
     color: '#fff',
     marginBottom: 2,
   },
   popularStationDescription: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 12,
+    fontSize: 11,
     color: 'rgba(255,255,255,0.6)',
   },
   stationsList: {

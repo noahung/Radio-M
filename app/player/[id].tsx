@@ -83,7 +83,7 @@ export default function PlayerScreen() {
         audioState.setSound(null);
       }
       
-      // Create and load new sound
+      // Create and load new sound with enhanced playback settings
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: station.streamUrl },
         { 
@@ -96,7 +96,7 @@ export default function PlayerScreen() {
         },
         onPlaybackStatusUpdate
       );
-
+      
       // Update global audio state
       audioState.setSound(newSound);
       audioState.setCurrentStation(station || null);
