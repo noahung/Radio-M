@@ -10,6 +10,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { translations } from '../i18n/translations';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WebView } from 'react-native-webview';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface UserData {
   name: string;
@@ -49,6 +50,12 @@ export default function ProfileScreen() {
     Inter_700Bold,
   });
   
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUserData();
+    }, [])
+  );
+  
   useEffect(() => {
     loadUserData();
     loadSettings();
@@ -59,7 +66,12 @@ export default function ProfileScreen() {
       const userDataString = await AsyncStorage.getItem('userData');
       if (userDataString) {
         const data = JSON.parse(userDataString);
-        setUserData(data);
+        setUserData(prevData => ({
+          ...prevData,
+          name: data.name || prevData.name,
+          country: data.country || prevData.country,
+          status: prevData.status // Preserve the status
+        }));
       }
     } catch (error) {
       console.error('Error loading user data:', error);

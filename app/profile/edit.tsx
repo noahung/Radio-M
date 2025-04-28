@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Modal, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Modal, FlatList, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Country {
   code: string;
@@ -37,13 +38,39 @@ export default function EditProfileScreen() {
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[1]); // Default to US
   const [countryModalVisible, setCountryModalVisible] = useState(false);
 
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem('userData');
+      if (userDataString) {
+        const data = JSON.parse(userDataString);
+        if (data.name) setName(data.name);
+        if (data.country) setSelectedCountry(data.country);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
   if (!fontsLoaded) {
     return null;
   }
 
-  const handleSave = () => {
-    // Here you would typically save the changes to your storage/backend
-    router.back();
+  const handleSave = async () => {
+    try {
+      const updatedUserData = {
+        name,
+        country: selectedCountry
+      };
+      await AsyncStorage.setItem('userData', JSON.stringify(updatedUserData));
+      router.back();
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      Alert.alert('Error', 'Failed to save profile changes');
+    }
   };
 
   const renderCountryItem = ({ item }: { item: Country }) => (
