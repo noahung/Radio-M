@@ -57,8 +57,7 @@
           "savePhotosPermission": "Allow Radio M to save photos to your photo library.",
           "isAccessMediaLocationEnabled": true
         }
-      ],
-      "@react-native-google-signin/google-signin"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
