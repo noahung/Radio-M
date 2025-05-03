@@ -18,7 +18,13 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.radiom.app"
+      "bundleIdentifier": "com.radiom.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"],
+        "NSMicrophoneUsageDescription": "This app does not require microphone access.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save and load profile pictures."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +32,14 @@
         "backgroundColor": "#000000"
       },
       "package": "com.radiom.app",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "FOREGROUND_SERVICE",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "bundler": "metro",
@@ -35,7 +48,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-av"
+      "expo-av",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Radio M to access your photos to save and load profile pictures.",
+          "savePhotosPermission": "Allow Radio M to save photos to your photo library.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,12 +1,15 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Dimensions, Alert, ImageSourcePropType } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { StatusBar } from 'expo-status-bar';
 import { stations } from '../../data/stations';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAudio } from '../contexts/AudioContext';
+import { useFocusEffect } from '@react-navigation/native';
+import React from 'react';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 8;
@@ -21,14 +24,33 @@ type StationWithFavorites = {
   isFavorite: boolean;
 };
 
+const AVATAR_IMAGES: { [key: string]: any } = {
+  'avatar1.png': require('../../assets/avatars/avatar1.png'),
+  'avatar2.png': require('../../assets/avatars/avatar2.png'),
+  'avatar3.png': require('../../assets/avatars/avatar3.png'),
+  'avatar4.png': require('../../assets/avatars/avatar4.png'),
+  'avatar5.png': require('../../assets/avatars/avatar5.png'),
+  'avatar6.png': require('../../assets/avatars/avatar6.png'),
+  'avatar7.png': require('../../assets/avatars/avatar7.png'),
+  'avatar8.png': require('../../assets/avatars/avatar8.png'),
+  'avatar9.png': require('../../assets/avatars/avatar9.png'),
+  'avatar10.png': require('../../assets/avatars/avatar10.png'),
+};
+
 export default function HomeScreen() {
   const [stationsWithFavorites, setStationsWithFavorites] = useState<StationWithFavorites[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
+    Inter_600SemiBold,
     Inter_700Bold,
   });
+
+  const [userName, setUserName] = useState('User');
+  const [userAvatar, setUserAvatar] = useState('avatar1.png');
+  const audioContext = useAudio();
+  const routerNav = router;
 
   // Function to shuffle array using Fisher-Yates algorithm
   const shuffleArray = (array: any[]) => {
@@ -47,6 +69,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadStationsWithFavorites();
+    loadUserData();
   }, []);
 
   const loadStationsWithFavorites = async () => {
@@ -69,6 +92,19 @@ export default function HomeScreen() {
         isFavorite: false
       }))));
       setIsInitialized(true);
+    }
+  };
+
+  const loadUserData = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem('userData');
+      if (userDataString) {
+        const data = JSON.parse(userDataString);
+        if (data.name) setUserName(data.name);
+        if (data.avatar) setUserAvatar(data.avatar);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
     }
   };
 
@@ -142,6 +178,12 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUserData();
+    }, [])
+  );
+
   if (!fontsLoaded || !isInitialized) {
     return (
       <View style={styles.container}>
@@ -164,12 +206,12 @@ export default function HomeScreen() {
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hello Miau</Text>
+            <Text style={styles.greeting}>Hello {userName}</Text>
             <Text style={styles.subtitle}>Welcome back!</Text>
           </View>
           <TouchableOpacity onPress={() => router.push('/profile')}>
             <Image
-              source={require('../../assets/avatars/avatar1.png')}
+              source={AVATAR_IMAGES[userAvatar]}
               style={styles.avatar}
             />
           </TouchableOpacity>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Modal, FlatList, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Modal, FlatList, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -10,6 +10,13 @@ interface Country {
   code: string;
   name: string;
   flag: string;
+}
+
+interface UserData {
+  name: string;
+  status: string;
+  country: Country;
+  avatar: string;
 }
 
 // Common countries for Myanmar diaspora
@@ -26,6 +33,32 @@ const COUNTRIES: Country[] = [
   { code: 'CA', name: 'Canada', flag: '🇨🇦' },
 ];
 
+const AVATARS = [
+  'avatar1.png',
+  'avatar2.png',
+  'avatar3.png',
+  'avatar4.png',
+  'avatar5.png',
+  'avatar6.png',
+  'avatar7.png',
+  'avatar8.png',
+  'avatar9.png',
+  'avatar10.png',
+];
+
+const AVATAR_IMAGES: { [key: string]: any } = {
+  'avatar1.png': require('../../assets/avatars/avatar1.png'),
+  'avatar2.png': require('../../assets/avatars/avatar2.png'),
+  'avatar3.png': require('../../assets/avatars/avatar3.png'),
+  'avatar4.png': require('../../assets/avatars/avatar4.png'),
+  'avatar5.png': require('../../assets/avatars/avatar5.png'),
+  'avatar6.png': require('../../assets/avatars/avatar6.png'),
+  'avatar7.png': require('../../assets/avatars/avatar7.png'),
+  'avatar8.png': require('../../assets/avatars/avatar8.png'),
+  'avatar9.png': require('../../assets/avatars/avatar9.png'),
+  'avatar10.png': require('../../assets/avatars/avatar10.png'),
+};
+
 export default function EditProfileScreen() {
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -35,8 +68,11 @@ export default function EditProfileScreen() {
   });
 
   const [name, setName] = useState('Andrew Ainsley');
+  const [status, setStatus] = useState('Music lover and radio enthusiast 🎧');
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[1]); // Default to US
+  const [selectedAvatar, setSelectedAvatar] = useState('avatar1.png');
   const [countryModalVisible, setCountryModalVisible] = useState(false);
+  const [avatarModalVisible, setAvatarModalVisible] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -49,6 +85,8 @@ export default function EditProfileScreen() {
         const data = JSON.parse(userDataString);
         if (data.name) setName(data.name);
         if (data.country) setSelectedCountry(data.country);
+        if (data.status) setStatus(data.status);
+        if (data.avatar) setSelectedAvatar(data.avatar);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -63,7 +101,9 @@ export default function EditProfileScreen() {
     try {
       const updatedUserData = {
         name,
-        country: selectedCountry
+        country: selectedCountry,
+        status,
+        avatar: selectedAvatar
       };
       await AsyncStorage.setItem('userData', JSON.stringify(updatedUserData));
       router.back();
@@ -89,6 +129,29 @@ export default function EditProfileScreen() {
     </TouchableOpacity>
   );
 
+  const renderAvatarItem = ({ item }: { item: string }) => (
+    <TouchableOpacity
+      style={styles.avatarItem}
+      onPress={() => {
+        setSelectedAvatar(item);
+        setAvatarModalVisible(false);
+      }}
+    >
+      <Image
+        source={AVATAR_IMAGES[item]}
+        style={[
+          styles.avatarPreview,
+          selectedAvatar === item && styles.selectedAvatar
+        ]}
+      />
+      {selectedAvatar === item && (
+        <View style={styles.avatarCheckmark}>
+          <Ionicons name="checkmark" size={20} color="#fff" />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -105,7 +168,23 @@ export default function EditProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.content}>
+          <View style={styles.avatarSection}>
+            <TouchableOpacity
+              style={styles.avatarContainer}
+              onPress={() => setAvatarModalVisible(true)}
+            >
+              <Image
+                source={AVATAR_IMAGES[selectedAvatar]}
+                style={styles.currentAvatar}
+              />
+              <View style={styles.avatarEditOverlay}>
+                <Ionicons name="camera" size={24} color="#fff" />
+              </View>
+            </TouchableOpacity>
+            <Text style={styles.avatarLabel}>Tap to change avatar</Text>
+          </View>
+
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Name</Text>
             <TextInput
@@ -113,6 +192,17 @@ export default function EditProfileScreen() {
               value={name}
               onChangeText={setName}
               placeholder="Enter your name"
+              placeholderTextColor="rgba(255,255,255,0.4)"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Status</Text>
+            <TextInput
+              style={styles.input}
+              value={status}
+              onChangeText={setStatus}
+              placeholder="Enter your status"
               placeholderTextColor="rgba(255,255,255,0.4)"
             />
           </View>
@@ -162,6 +252,35 @@ export default function EditProfileScreen() {
             </View>
           </View>
         </Modal>
+
+        <Modal
+          visible={avatarModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setAvatarModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Select Avatar</Text>
+                <TouchableOpacity
+                  onPress={() => setAvatarModalVisible(false)}
+                  style={styles.closeButton}
+                >
+                  <Ionicons name="close" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={AVATARS}
+                renderItem={renderAvatarItem}
+                keyExtractor={item => item}
+                numColumns={3}
+                style={styles.avatarList}
+                contentContainerStyle={styles.avatarListContent}
+              />
+            </View>
+          </View>
+        </Modal>
       </LinearGradient>
     </View>
   );
@@ -199,6 +318,35 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 24,
+  },
+  avatarSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: 8,
+  },
+  currentAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  avatarEditOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarLabel: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
   },
   inputGroup: {
     marginBottom: 24,
@@ -293,5 +441,36 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     marginLeft: 'auto',
+  },
+  avatarList: {
+    padding: 12,
+  },
+  avatarListContent: {
+    paddingBottom: 24,
+  },
+  avatarItem: {
+    flex: 1,
+    aspectRatio: 1,
+    padding: 8,
+  },
+  avatarPreview: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  selectedAvatar: {
+    borderWidth: 2,
+    borderColor: '#FF1B6D',
+  },
+  avatarCheckmark: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#FF1B6D',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }); 

@@ -20,7 +20,21 @@ interface UserData {
     code: string;
     flag: string;
   };
+  avatar: string;
 }
+
+const AVATAR_IMAGES: { [key: string]: any } = {
+  'avatar1.png': require('../../assets/avatars/avatar1.png'),
+  'avatar2.png': require('../../assets/avatars/avatar2.png'),
+  'avatar3.png': require('../../assets/avatars/avatar3.png'),
+  'avatar4.png': require('../../assets/avatars/avatar4.png'),
+  'avatar5.png': require('../../assets/avatars/avatar5.png'),
+  'avatar6.png': require('../../assets/avatars/avatar6.png'),
+  'avatar7.png': require('../../assets/avatars/avatar7.png'),
+  'avatar8.png': require('../../assets/avatars/avatar8.png'),
+  'avatar9.png': require('../../assets/avatars/avatar9.png'),
+  'avatar10.png': require('../../assets/avatars/avatar10.png'),
+};
 
 export default function ProfileScreen() {
   const [userData, setUserData] = useState<UserData>({
@@ -30,7 +44,8 @@ export default function ProfileScreen() {
       name: "United States",
       code: "US",
       flag: "🇺🇸"
-    }
+    },
+    avatar: 'avatar1.png',
   });
   
   const routerNav = router;
@@ -70,7 +85,8 @@ export default function ProfileScreen() {
           ...prevData,
           name: data.name || prevData.name,
           country: data.country || prevData.country,
-          status: prevData.status // Preserve the status
+          status: data.status || prevData.status,
+          avatar: data.avatar || prevData.avatar,
         }));
       }
     } catch (error) {
@@ -146,7 +162,7 @@ export default function ProfileScreen() {
             <View style={styles.profileSection}>
               <View style={styles.avatarContainer}>
                 <Image
-                  source={require('../../assets/avatars/avatar1.png')}
+                  source={AVATAR_IMAGES[userData.avatar]}
                   style={styles.avatar}
                 />
                 <View style={styles.premiumBadge}>
