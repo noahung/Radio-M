@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "335867544363",
+    "project_id": "radiom-c39b5",
+    "storage_bucket": "radiom-c39b5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:335867544363:android:2a19ef5744ba417054bb6e",
+        "android_client_info": {
+          "package_name": "com.noah.radiom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "335867544363-6emdh857su1okmbp8gjfecso3vit2urb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.noah.radiom",
+            "certificate_hash": "162452e869b8f42a109b83455a0246b0030477f6"
+          }
+        },
+        {
+          "client_id": "335867544363-3pdr103robphkmcnh0ri5qi8ncknn0d6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtFx1Gy4W_B2mbpOr7DV3PCKpZJNzjDtU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "335867544363-3pdr103robphkmcnh0ri5qi8ncknn0d6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "335867544363-4qgjbn59hl843llnothpskmcmds9cs7l.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.noah.radiom"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -10,15 +10,74 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle, signInWithFacebook } = useAuth();
 
   const handleGuestLogin = async () => {
     try {
+      setLoading(true);
+      // Create a default user profile for guests
+      const guestUserData = {
+        name: "Guest User",
+        email: "",
+        avatar: "avatar1.png",
+        status: "Music lover and radio enthusiast 🎧",
+        country: {
+          name: "United States",
+          code: "US",
+          flag: "🇺🇸"
+        }
+      };
+      
+      // Save guest user data
+      await AsyncStorage.setItem('userData', JSON.stringify(guestUserData));
       await AsyncStorage.setItem('userToken', 'guest');
-      // @ts-ignore - Router type is incorrect
-      router.replace('/(tabs)/home');
+      
+      // Navigate to home
+      router.replace('/(tabs)' as any);
     } catch (err) {
       setError('Failed to login as guest');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const result = await signInWithGoogle();
+      
+      if (result.success) {
+        // Navigate to home screen
+        router.replace('/(tabs)' as any);
+      } else {
+        setError(result.error || 'Failed to login with Google');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during Google login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const result = await signInWithFacebook();
+      
+      if (result.success) {
+        // Navigate to home screen
+        router.replace('/(tabs)' as any);
+      } else {
+        setError(result.error || 'Failed to login with Facebook');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during Facebook login');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,20 +109,32 @@ export default function LoginScreen() {
             ) : null}
 
             <View style={styles.socialButtons}>
-              <TouchableOpacity style={styles.socialButton}>
+              <TouchableOpacity 
+                style={styles.socialButton}
+                onPress={handleFacebookLogin}
+                disabled={loading}
+              >
                 <View style={[styles.iconContainer, {backgroundColor: '#1877F2'}]}>
                   <Ionicons name="logo-facebook" size={24} color="#fff" />
                 </View>
                 <Text style={styles.socialButtonText}>Continue with Facebook</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.socialButton}>
+              <TouchableOpacity 
+                style={styles.socialButton}
+                onPress={handleGoogleLogin}
+                disabled={loading}
+              >
                 <View style={[styles.iconContainer, {backgroundColor: '#fff'}]}>
                   <Ionicons name="logo-google" size={24} color="#4285F4" />
                 </View>
                 <Text style={styles.socialButtonText}>Continue with Google</Text>
               </TouchableOpacity>
             </View>
+
+            {loading && (
+              <ActivityIndicator size="large" color="#FF1B6D" style={styles.loader} />
+            )}
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
@@ -224,5 +295,8 @@ const styles = StyleSheet.create({
     color: '#ff3b30',
     textAlign: 'center',
     marginBottom: 15,
+  },
+  loader: {
+    marginTop: 20,
   },
 }); 

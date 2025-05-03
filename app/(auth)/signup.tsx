@@ -1,16 +1,19 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Image, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import LottieView from 'lottie-react-native';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const animationRef = useRef<LottieView>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -22,9 +25,51 @@ export default function SignUpScreen() {
     return null;
   }
 
+  const { signInWithGoogle, signInWithFacebook } = useAuth();
+
   const handleSignUp = () => {
     // Add your signup logic here
     router.replace('/(tabs)' as any);
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const result = await signInWithGoogle();
+      
+      if (result.success) {
+        // Navigate to home screen
+        router.replace('/(tabs)' as any);
+      } else {
+        setError(result.error || 'Failed to login with Google');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during Google login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const result = await signInWithFacebook();
+      
+      if (result.success) {
+        // Navigate to home screen
+        router.replace('/(tabs)' as any);
+      } else {
+        setError(result.error || 'Failed to login with Facebook');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during Facebook login');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -101,22 +146,32 @@ export default function SignUpScreen() {
             </View>
 
             <View style={styles.socialButtons}>
-              <TouchableOpacity style={styles.socialButton}>
+              <TouchableOpacity 
+                style={styles.socialButton}
+                onPress={handleFacebookLogin}
+                disabled={loading}
+              >
                 <View style={[styles.iconContainer, {backgroundColor: '#1877F2'}]}>
-                  <Ionicons name="logo-facebook" size={20} color="#fff" />
+                  <Ionicons name="logo-facebook" size={24} color="#fff" />
                 </View>
+                <Text style={styles.socialButtonText}>Continue with Facebook</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
+
+              <TouchableOpacity 
+                style={styles.socialButton}
+                onPress={handleGoogleLogin}
+                disabled={loading}
+              >
                 <View style={[styles.iconContainer, {backgroundColor: '#fff'}]}>
-                  <Ionicons name="logo-google" size={20} color="#4285F4" />
+                  <Ionicons name="logo-google" size={24} color="#4285F4" />
                 </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <View style={[styles.iconContainer, {backgroundColor: '#000'}]}>
-                  <Ionicons name="logo-apple" size={20} color="#fff" />
-                </View>
+                <Text style={styles.socialButtonText}>Continue with Google</Text>
               </TouchableOpacity>
             </View>
+
+            {loading && (
+              <ActivityIndicator size="large" color="#FF1B6D" style={styles.loader} />
+            )}
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>Already have an account? </Text>
@@ -238,7 +293,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   socialButton: {
-    width: 54,
+    width: 150,
     height: 54,
     borderRadius: 27,
     backgroundColor: 'rgba(255,255,255,0.1)',
@@ -251,6 +306,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  socialButtonText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
   },
   footer: {
     flexDirection: 'row',
@@ -266,5 +326,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_500Medium',
     fontSize: 14,
     color: '#8B3DFF',
+  },
+  loader: {
+    marginTop: 20,
   },
 }); 
