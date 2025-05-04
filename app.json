@@ -9,9 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash.gif",
-      "resizeMode": "contain",
       "backgroundColor": "#000000"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "enabled": false
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,7 +23,9 @@
       "bundleIdentifier": "com.radiom.app",
       "buildNumber": "1",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"],
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "NSMicrophoneUsageDescription": "This app does not require microphone access.",
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save and load profile pictures."
       }
@@ -37,9 +41,14 @@
         "INTERNET",
         "FOREGROUND_SERVICE",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION"
       ],
-      "googleServicesFile": "./android/app/google-services.json",
+      "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
@@ -57,10 +66,25 @@
           "savePhotosPermission": "Allow Radio M to save photos to your photo library.",
           "isAccessMediaLocationEnabled": true
         }
+      ],
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#000000"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ae05cab0-8f78-4cdd-b43b-be80fc35a8d0"
+      }
     }
   }
 }

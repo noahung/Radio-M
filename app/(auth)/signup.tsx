@@ -25,11 +25,34 @@ export default function SignUpScreen() {
     return null;
   }
 
-  const { signInWithGoogle, signInWithFacebook } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
 
-  const handleSignUp = () => {
-    // Add your signup logic here
-    router.replace('/(tabs)' as any);
+  const handleSignUp = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Validate inputs
+      if (!email || !email.includes('@')) {
+        setError('Please enter a valid email address');
+        return;
+      }
+      
+      if (!password || password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return;
+      }
+      
+      // Use the signIn method from AuthContext
+      await signIn(email, password);
+      
+      // If successful, navigate to home
+      router.replace('/(tabs)/home' as any);
+    } catch (err: any) {
+      setError(err.message || 'Failed to create account');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -41,32 +64,12 @@ export default function SignUpScreen() {
       
       if (result.success) {
         // Navigate to home screen
-        router.replace('/(tabs)' as any);
+        router.replace('/(tabs)/home' as any);
       } else {
         setError(result.error || 'Failed to login with Google');
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during Google login');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFacebookLogin = async () => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      const result = await signInWithFacebook();
-      
-      if (result.success) {
-        // Navigate to home screen
-        router.replace('/(tabs)' as any);
-      } else {
-        setError(result.error || 'Failed to login with Facebook');
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during Facebook login');
     } finally {
       setLoading(false);
     }
@@ -93,6 +96,10 @@ export default function SignUpScreen() {
               />
               <Text style={styles.title}>Create Your Account</Text>
             </View>
+
+            {error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : null}
 
             <View style={styles.form}>
               <View style={styles.inputContainer}>
@@ -148,24 +155,13 @@ export default function SignUpScreen() {
             <View style={styles.socialButtons}>
               <TouchableOpacity 
                 style={styles.socialButton}
-                onPress={handleFacebookLogin}
-                disabled={loading}
-              >
-                <View style={[styles.iconContainer, {backgroundColor: '#1877F2'}]}>
-                  <Ionicons name="logo-facebook" size={24} color="#fff" />
-                </View>
-                <Text style={styles.socialButtonText}>Continue with Facebook</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.socialButton}
                 onPress={handleGoogleLogin}
                 disabled={loading}
               >
                 <View style={[styles.iconContainer, {backgroundColor: '#fff'}]}>
                   <Ionicons name="logo-google" size={24} color="#4285F4" />
                 </View>
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
+                <Text style={styles.socialButtonText}>Google</Text>
               </TouchableOpacity>
             </View>
 
@@ -287,30 +283,32 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   socialButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20,
+    width: '100%',
+    alignItems: 'center',
+    gap: 16,
     marginBottom: 24,
   },
   socialButton: {
-    width: 150,
-    height: 54,
-    borderRadius: 27,
+    width: 120,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
   },
   iconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   socialButtonText: {
-    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.9)',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',
@@ -329,5 +327,11 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: 20,
+  },
+  errorText: {
+    color: '#ff3b30',
+    textAlign: 'center',
+    marginBottom: 15,
+    fontFamily: 'Inter_400Regular',
   },
 }); 

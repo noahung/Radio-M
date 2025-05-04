@@ -10,11 +10,13 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const { signIn, signInWithGoogle, signInWithFacebook } = useAuth();
+  const { signIn, signInWithGoogle, setIsAuthenticated, setUser } = useAuth();
 
   const handleGuestLogin = async () => {
     try {
       setLoading(true);
+      console.log("Guest login starting...");
+      
       // Create a default user profile for guests
       const guestUserData = {
         name: "Guest User",
@@ -32,9 +34,15 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('userData', JSON.stringify(guestUserData));
       await AsyncStorage.setItem('userToken', 'guest');
       
-      // Navigate to home
-      router.replace('/(tabs)' as any);
+      // Set auth state in context
+      setIsAuthenticated(true);
+      setUser(guestUserData);
+      
+      // Navigate directly to home
+      console.log("Navigating to home tab...");
+      router.replace('/(tabs)/home' as any);
     } catch (err) {
+      console.error("Guest login error:", err);
       setError('Failed to login as guest');
     } finally {
       setLoading(false);
@@ -56,26 +64,6 @@ export default function LoginScreen() {
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during Google login');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFacebookLogin = async () => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      const result = await signInWithFacebook();
-      
-      if (result.success) {
-        // Navigate to home screen
-        router.replace('/(tabs)' as any);
-      } else {
-        setError(result.error || 'Failed to login with Facebook');
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during Facebook login');
     } finally {
       setLoading(false);
     }
@@ -111,24 +99,13 @@ export default function LoginScreen() {
             <View style={styles.socialButtons}>
               <TouchableOpacity 
                 style={styles.socialButton}
-                onPress={handleFacebookLogin}
-                disabled={loading}
-              >
-                <View style={[styles.iconContainer, {backgroundColor: '#1877F2'}]}>
-                  <Ionicons name="logo-facebook" size={24} color="#fff" />
-                </View>
-                <Text style={styles.socialButtonText}>Continue with Facebook</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.socialButton}
                 onPress={handleGoogleLogin}
                 disabled={loading}
               >
                 <View style={[styles.iconContainer, {backgroundColor: '#fff'}]}>
                   <Ionicons name="logo-google" size={24} color="#4285F4" />
                 </View>
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
+                <Text style={styles.socialButtonText}>Google</Text>
               </TouchableOpacity>
             </View>
 
@@ -145,8 +122,8 @@ export default function LoginScreen() {
             <TouchableOpacity 
               style={styles.signInButton}
               onPress={() => {
-                // @ts-ignore - Router type is incorrect
-                router.push('/(auth)/signup');
+                // Navigate to signup/register page
+                router.push('/(auth)/signup' as any);
               }}
             >
               <Text style={styles.signInButtonText}>Sign in with password</Text>
@@ -163,8 +140,7 @@ export default function LoginScreen() {
               <Text style={styles.footerText}>Don't have an account? </Text>
               <TouchableOpacity 
                 onPress={() => {
-                  // @ts-ignore - Router type is incorrect
-                  router.push('/(auth)/signup');
+                  router.push('/(auth)/signup' as any);
                 }}
               >
                 <Text style={styles.signUpText}>Sign up</Text>
@@ -210,28 +186,30 @@ const styles = StyleSheet.create({
   },
   socialButtons: {
     width: '100%',
+    alignItems: 'center',
     gap: 16,
     marginBottom: 24,
   },
   socialButton: {
-    flexDirection: 'row',
+    width: 120,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 16,
-    padding: 16,
-    gap: 12,
+    flexDirection: 'row',
+    gap: 8,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   socialButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 14,
     fontWeight: '500',
   },
   divider: {

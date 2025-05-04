@@ -94,55 +94,6 @@ export const GoogleAuth = {
   }
 };
 
-export const FacebookAuth = {
-  // Mock Facebook authentication for development
-  signIn: async (): Promise<{ success: boolean; user?: UserData; error?: string }> => {
-    try {
-      console.log('Mock Facebook Sign-In for development');
-      
-      // Create fake Facebook user data
-      const userData: UserData = {
-        name: "Facebook User",
-        email: "facebook@example.com",
-        avatar: "avatar2.png",
-        status: "Music lover and radio enthusiast 🎧",
-        country: {
-          name: "United States",
-          code: "US",
-          flag: "🇺🇸"
-        }
-      };
-      
-      // Save user data
-      await AsyncStorage.setItem('userData', JSON.stringify(userData));
-      await AsyncStorage.setItem('userToken', `facebook-${Date.now()}`);
-      
-      return {
-        success: true,
-        user: userData
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message || 'Facebook authentication error'
-      };
-    }
-  },
-  
-  signOut: async (): Promise<{ success: boolean; error?: string }> => {
-    try {
-      await AsyncStorage.removeItem('userToken');
-      return { success: true };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message || 'Error signing out of Facebook'
-      };
-    }
-  }
-};
-
 export default {
-  GoogleAuth,
-  FacebookAuth
+  GoogleAuth
 }; 
