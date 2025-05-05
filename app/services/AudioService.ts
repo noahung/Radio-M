@@ -5,7 +5,7 @@ import * as Notifications from 'expo-notifications';
 // Configure notifications for media controls
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: false,
+    shouldShowAlert: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
   }),
@@ -84,6 +84,16 @@ export const showPlaybackNotification = async (
               },
             },
           ],
+          // Add media style for Android
+          style: {
+            type: 'media',
+            mediaStyle: {
+              showPlayPauseButton: true,
+              showStopButton: true,
+              showNextButton: false,
+              showPreviousButton: false,
+            },
+          },
         }),
       },
       trigger: null,

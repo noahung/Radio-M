@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
@@ -7,7 +7,6 @@ import { View, Text, Image, Animated, Platform } from 'react-native';
 import { Asset } from 'expo-asset';
 import { AudioProvider } from './contexts/AudioContext';
 import { SettingsProvider } from './contexts/SettingsContext';
-import AuthProvider, { useAuth } from './contexts/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -30,35 +29,6 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 const splashGif = require('../assets/images/splash.gif');
 
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-  const segments = useSegments();
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-    const inTabsGroup = segments[0] === '(tabs)';
-    const isRootRoute = segments.length <= 0;
-
-    // Allow root route and auth group to pass through
-    if (isRootRoute || inAuthGroup) {
-      return;
-    }
-
-    // Redirect to auth if not authenticated
-    if (!isAuthenticated) {
-      router.replace('/(auth)/login' as any);
-      return;
-    }
-
-    // Redirect to tabs if authenticated and in auth group
-    if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)' as any);
-      return;
-    }
-  }, [isAuthenticated, segments, router, isLoading]);
-
   return (
     <Stack 
       screenOptions={{ 
@@ -68,13 +38,6 @@ function RootLayoutNav() {
     >
       <Stack.Screen 
         name="index" 
-        options={{ 
-          headerShown: false,
-          gestureEnabled: false,
-        }} 
-      />
-      <Stack.Screen 
-        name="(auth)" 
         options={{ 
           headerShown: false,
           gestureEnabled: false,
@@ -111,16 +74,42 @@ function RootLayoutNav() {
           animation: 'slide_from_right',
         }} 
       />
-      <Stack.Screen 
-        name="profile/edit" 
-        options={{ 
-          headerShown: false,
-          gestureEnabled: true,
-          animation: 'slide_from_right',
-        }} 
-      />
     </Stack>
   );
+}
+
+async function registerForPushNotificationsAsync() {
+  let token;
+
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('playback-controls', {
+      name: 'Playback Controls',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 0, 0, 0],
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      sound: null,
+      enableLights: false,
+      enableVibrate: false,
+      showBadge: false,
+    });
+  }
+
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      console.log('Failed to get push token for push notification!');
+      return;
+    }
+  } else {
+    console.log('Must use physical device for Push Notifications');
+  }
+
+  return token;
 }
 
 export default function RootLayout() {
@@ -137,11 +126,15 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
+  // Request notification permissions on app start
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
+
   // Preload splash image
   useEffect(() => {
     async function loadSplashGif() {
       try {
-        // Force preload the image
         await Asset.loadAsync([splashGif]);
         console.log("Splash GIF loaded successfully");
         setSplashLoaded(true);
@@ -187,109 +180,57 @@ export default function RootLayout() {
   }, [onLayoutRootView]);
 
   useEffect(() => {
-    // Wait for splash and fonts to be loaded
     if (!isSplashLoaded) return;
     
     console.log("Starting splash screen timer");
     
-    // Show splash screen for at least 3 seconds (3000ms)
     const timer = setTimeout(() => {
       console.log("Splash timer complete, starting fade out");
-      // Start fade-out animation
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 500,
+        duration: 800,
         useNativeDriver: true,
-      }).start(() => {
-        // After fade-out, set splash ready
-        console.log("Fade complete, hiding splash screen");
+      }).start(async () => {
         setSplashReady(true);
-        SplashScreen.hideAsync().catch(e => console.log('Error hiding splash:', e));
+        try {
+          await SplashScreen.hideAsync();
+        } catch (e) {
+          console.error('Error hiding splash screen:', e);
+        }
       });
-    }, 3000);
+    }, 2000);
 
     return () => clearTimeout(timer);
-  }, [fadeAnim, isSplashLoaded]);
+  }, [isSplashLoaded, fadeAnim]);
 
-  // Add notification setup
-  useEffect(() => {
-    async function setupNotifications() {
-      try {
-        if (Platform.OS === 'android') {
-          await Notifications.setNotificationChannelAsync('default', {
-            name: 'default',
-            importance: Notifications.AndroidImportance.MAX,
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#FF231F7C',
-          });
-        }
-
-        if (Device.isDevice) {
-          const { status: existingStatus } = await Notifications.getPermissionsAsync();
-          let finalStatus = existingStatus;
-          if (existingStatus !== 'granted') {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-          }
-          if (finalStatus !== 'granted') {
-            console.log('Failed to get push token for push notification!');
-            return;
-          }
-        } else {
-          console.log('Must use physical device for Push Notifications');
-        }
-      } catch (error) {
-        console.error('Error setting up notifications:', error);
-      }
-    }
-
-    setupNotifications();
-  }, []);
-
-  if (error) {
+  if (!isReady || !isSplashReady) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <StatusBar style="light" />
-        <Text style={{ color: '#fff', fontSize: 16, textAlign: 'center' }}>
-          Error: {error}
-        </Text>
-      </View>
-    );
-  }
-
-  if (!isReady) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
-        <StatusBar style="light" />
-        <Text style={{ color: '#fff', fontSize: 16 }}>
-          Loading...
-        </Text>
-      </View>
-    );
-  }
-
-  if (!isSplashReady || !isSplashLoaded) {
-    return (
-      <Animated.View style={{ flex: 1, backgroundColor: '#000000', opacity: fadeAnim }}>
-        <StatusBar style="light" />
-        <Image
+      <Animated.View 
+        style={{
+          flex: 1,
+          opacity: fadeAnim,
+          backgroundColor: '#000',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Image 
           source={splashGif}
-          style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
+          style={{
+            width: '100%',
+            height: '100%',
+            resizeMode: 'contain',
+          }}
         />
       </Animated.View>
     );
   }
 
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <AudioProvider>
-          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-            <StatusBar style="light" />
-            <RootLayoutNav />
-          </View>
-        </AudioProvider>
-      </SettingsProvider>
-    </AuthProvider>
+    <SettingsProvider>
+      <AudioProvider>
+        <RootLayoutNav />
+      </AudioProvider>
+    </SettingsProvider>
   );
 }

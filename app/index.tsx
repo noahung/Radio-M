@@ -34,7 +34,7 @@ export default function InitialScreen() {
             </Text>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => router.push('/(auth)/login')}
+              onPress={() => router.push('/(tabs)/home')}
             >
               <Text style={styles.buttonText}>Get Started</Text>
             </TouchableOpacity>

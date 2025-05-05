@@ -1,21 +1,11 @@
 # Build Android Script for RadioM
 
-# Ensure google-services.json exists
-if (-not (Test-Path -Path ".\google-services.json")) {
-    Write-Error "google-services.json file not found. Please make sure it exists in the project root."
-    exit 1
-}
-
 # Create android directory if it doesn't exist
 if (-not (Test-Path -Path ".\android")) {
     Write-Host "Creating android directory..."
     mkdir android
     mkdir android\app
 }
-
-# Copy google-services.json to android/app
-Write-Host "Copying google-services.json to android/app..."
-Copy-Item -Path ".\google-services.json" -Destination ".\android\app\google-services.json" -Force
 
 # Run prebuild
 Write-Host "Running expo prebuild..."

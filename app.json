@@ -26,8 +26,7 @@
         "UIBackgroundModes": [
           "audio"
         ],
-        "NSMicrophoneUsageDescription": "This app does not require microphone access.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to save and load profile pictures."
+        "NSMicrophoneUsageDescription": "This app does not require microphone access."
       }
     },
     "android": {
@@ -40,15 +39,10 @@
       "permissions": [
         "INTERNET",
         "FOREGROUND_SERVICE",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.ACCESS_MEDIA_LOCATION"
+        "MODIFY_AUDIO_SETTINGS",
+        "POST_NOTIFICATIONS",
+        "FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
-      "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
@@ -59,15 +53,6 @@
     "plugins": [
       "expo-router",
       "expo-av",
-      [
-        "expo-media-library",
-        {
-          "photosPermission": "Allow Radio M to access your photos to save and load profile pictures.",
-          "savePhotosPermission": "Allow Radio M to save photos to your photo library.",
-          "isAccessMediaLocationEnabled": true
-        }
-      ],
-      "@react-native-google-signin/google-signin",
       [
         "expo-splash-screen",
         {

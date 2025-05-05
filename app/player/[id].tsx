@@ -102,6 +102,18 @@ export default function PlayerScreen() {
       audioState.setCurrentStation(station || null);
       audioState.setIsPlaying(true);
       
+      // Add a timeout to prevent infinite buffering
+      const timeoutId = setTimeout(() => {
+        if (isBuffering) {
+          handleAudioError({ message: 'Loading timeout' });
+        }
+      }, 15000); // 15 seconds timeout
+
+      // Clean up timeout when buffering is complete
+      if (!isBuffering) {
+        clearTimeout(timeoutId);
+      }
+      
       setIsBuffering(false);
     } catch (error) {
       handleAudioError(error);
@@ -114,7 +126,7 @@ export default function PlayerScreen() {
     let errorType = 'UNKNOWN';
     if (error.message?.includes('network') || error.message?.includes('connection')) {
       errorType = 'NETWORK';
-    } else if (error.message?.includes('load')) {
+    } else if (error.message?.includes('load') || error.message?.includes('timeout')) {
       errorType = 'LOADING';
     } else if (error.message?.includes('play')) {
       errorType = 'PLAYBACK';

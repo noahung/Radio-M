@@ -206,15 +206,8 @@ export default function HomeScreen() {
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hello {userName}</Text>
-            <Text style={styles.subtitle}>Welcome back!</Text>
+            <Text style={styles.greeting}>Listen to the sound of home</Text>
           </View>
-          <TouchableOpacity onPress={() => router.push('/profile')}>
-            <Image
-              source={AVATAR_IMAGES[userAvatar]}
-              style={styles.avatar}
-            />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.featuredSection}>

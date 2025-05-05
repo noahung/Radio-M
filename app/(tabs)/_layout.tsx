@@ -55,11 +55,11 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="profile"
+          name="donate"
           options={{
-            title: 'Profile',
+            title: 'Donate',
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person-outline" size={size} color={color} />
+              <Ionicons name="heart-outline" size={size} color={color} />
             ),
           }}
         />
