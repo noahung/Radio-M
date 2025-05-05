@@ -3,20 +3,11 @@
 
 Write-Host "Preparing RadioM for Android Studio build..." -ForegroundColor Green
 
-# 1. Ensure google-services.json is copied to android/app
-if (Test-Path -Path ".\google-services.json") {
-    Write-Host "Copying google-services.json to Android project..." -ForegroundColor Yellow
-    Copy-Item -Path ".\google-services.json" -Destination ".\android\app\google-services.json" -Force
-    Write-Host "Google services file copied successfully." -ForegroundColor Green
-} else {
-    Write-Host "Warning: google-services.json not found in project root. Please add it manually to android/app directory." -ForegroundColor Yellow
-}
-
-# 2. Run prebuild to ensure everything is up to date
+# 1. Run prebuild to ensure everything is up to date
 Write-Host "Running expo prebuild..." -ForegroundColor Yellow
 npx expo prebuild --platform android --no-install
 
-# 3. Instructions for Android Studio
+# 2. Instructions for Android Studio
 Write-Host "`nSetup Complete!`n" -ForegroundColor Green
 Write-Host "Now you can build a production APK in Android Studio:" -ForegroundColor Yellow
 Write-Host "1. Open Android Studio" -ForegroundColor Yellow

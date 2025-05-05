@@ -10,6 +10,7 @@ import { SettingsProvider } from './contexts/SettingsContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+// import mobileAds from 'react-native-google-mobile-ads';
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -126,6 +127,19 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
+  // Initialize mobile ads SDK
+  useEffect(() => {
+    const initializeAds = async () => {
+      try {
+        // Mobile ads initialization skipped
+        console.log('Mobile ads SDK initialization skipped');
+      } catch (error) {
+        console.error('Error initializing mobile ads:', error);
+      }
+    };
+    initializeAds();
+  }, []);
+
   // Request notification permissions on app start
   useEffect(() => {
     registerForPushNotificationsAsync();
@@ -198,7 +212,7 @@ export default function RootLayout() {
           console.error('Error hiding splash screen:', e);
         }
       });
-    }, 2000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [isSplashLoaded, fadeAnim]);

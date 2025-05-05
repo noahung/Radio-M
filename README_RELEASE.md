@@ -6,7 +6,6 @@ This guide provides step-by-step instructions for building a release version of 
 
 **Using the build script is highly recommended** over manually building with Android Studio. The build script:
 - Ensures proper keystore configuration
-- Correctly sets up Google Services
 - Prepares the app's native modules correctly
 - Configures proper signing for the release
 
@@ -107,10 +106,8 @@ After successful build:
 - **Build errors**: Check the logs for specific error messages
 - **Signing issues**: Verify keystore path and password configuration
 - **Crashes on startup**: Check for missing or misconfigured native modules
-- **Google Sign-In issues**: Verify the google-services.json file is correctly configured
 
 ## Notes
 
 - The release build has optimizations enabled and debugging disabled
-- The splash screen should properly display for 3 seconds in the release build
-- Google Sign-In requires the correct configuration in google-services.json 
+- The splash screen should properly display for 3 seconds in the release build 

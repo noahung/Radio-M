@@ -22,27 +22,14 @@ if (-not (Test-Path -Path ".\keystore\radiom-release-key.keystore")) {
     $useDebugKeystore = $true
 }
 
-# 4. Ensure the correct Google Services file exists
-if (-not (Test-Path -Path ".\google-services.json")) {
-    Write-Host "Error: google-services.json file is missing" -ForegroundColor Red
-    exit 1
-}
-
-# 5. Update app.json for production
+# 4. Update app.json for production
 Write-Host "Configuring app for production..." -ForegroundColor Yellow
 
-# 5a. Copy google-services.json to android/app if needed
-if (-not (Test-Path -Path ".\android\app")) {
-    mkdir -p ".\android\app"
-}
-Copy-Item -Path ".\google-services.json" -Destination ".\android\app\google-services.json" -Force
-Write-Host "Copied google-services.json to Android project" -ForegroundColor Green
-
-# 6. Prebuild the app
+# 5. Prebuild the app
 Write-Host "Running prebuild step..." -ForegroundColor Yellow
 npx expo prebuild --clean
 
-# 7. Ensure gradlew is executable
+# 6. Ensure gradlew is executable
 Write-Host "Setting up Android build..." -ForegroundColor Yellow
 if (Test-Path -Path ".\android\gradlew") {
     # Ensure gradlew has executable permission (equivalent to chmod +x)
@@ -50,19 +37,19 @@ if (Test-Path -Path ".\android\gradlew") {
     # but for Windows this is generally not an issue for command execution
 }
 
-# 8. Update build.gradle if using debug keystore
+# 7. Update build.gradle if using debug keystore
 if ($useDebugKeystore) {
     Write-Host "Configuring build to use debug keystore..." -ForegroundColor Yellow
     # The signConfig in android/app/build.gradle already defaults to debug if release config is missing
 }
 
-# 9. Build APK
+# 8. Build APK
 Write-Host "Building APK..." -ForegroundColor Yellow
 Set-Location -Path ".\android"
 ./gradlew assembleRelease
 Set-Location -Path ".."
 
-# 10. Verify build was successful
+# 9. Verify build was successful
 if (Test-Path -Path ".\android\app\build\outputs\apk\release\app-release.apk") {
     Write-Host "Production build completed successfully!" -ForegroundColor Green
     Write-Host "APK is available at: .\android\app\build\outputs\apk\release\app-release.apk" -ForegroundColor Green

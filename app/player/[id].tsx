@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Share, Alert, TextInput, KeyboardAvoidingView, Platform, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { GradientView } from '../components/GradientView';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -478,7 +478,7 @@ export default function PlayerScreen() {
       style={styles.container}
     >
       <StatusBar style="light" />
-      <LinearGradient
+      <GradientView
         colors={['rgba(0,0,0,0.8)', 'rgba(25, 25, 112, 0.8)']}
         style={styles.gradient}
       >
@@ -507,7 +507,7 @@ export default function PlayerScreen() {
                 resizeMode="cover"
               />
             ) : (
-              <LinearGradient
+              <GradientView
                 colors={['#FF1B6D', '#45D9D6']}
                 style={styles.gradientBox}
               />
@@ -586,7 +586,7 @@ export default function PlayerScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </LinearGradient>
+      </GradientView>
 
       <Modal
         visible={showSleepTimerModal}

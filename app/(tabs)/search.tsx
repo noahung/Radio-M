@@ -1,10 +1,12 @@
 import React, { useCallback, useState, memo, useMemo } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { router } from 'expo-router';
 import { stations, Station } from '../../data/stations';
+import { StatusBar } from 'expo-status-bar';
+import { BannerAd } from '../components/BannerAd';
+import { GradientView } from '../components/GradientView';
 
 // Reduced sizes for better performance
 const ITEM_WIDTH = 140;
@@ -112,43 +114,30 @@ export default function DiscoverScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
+      <StatusBar style="light" />
+      <GradientView
         colors={['rgba(0,0,0,0.8)', 'rgba(25,25,112,0.8)']}
         style={styles.gradient}
       >
-        <ScrollView 
-          style={styles.content} 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          removeClippedSubviews={true}
-          scrollEventThrottle={16}
-          overScrollMode="never"
-        >
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Discover</Text>
-          </View>
-
+        <View style={styles.header}>
           <View style={styles.searchContainer}>
-            <Ionicons name="search-outline" size={20} color="rgba(255,255,255,0.6)" />
+            <Ionicons name="search" size={20} color="rgba(255,255,255,0.6)" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search stations..."
               placeholderTextColor="rgba(255,255,255,0.6)"
               value={searchQuery}
-              onChangeText={handleSearch}
-              autoCapitalize="none"
-              autoCorrect={false}
+              onChangeText={setSearchQuery}
             />
             {searchQuery ? (
-              <TouchableOpacity
-                onPress={() => handleSearch('')}
-                style={styles.clearButton}
-              >
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
                 <Ionicons name="close-circle" size={20} color="rgba(255,255,255,0.6)" />
               </TouchableOpacity>
             ) : null}
           </View>
+        </View>
 
+        <ScrollView style={styles.content}>
           {!searchQuery && (
             <>
               <View style={styles.sectionHeader}>
@@ -179,6 +168,8 @@ export default function DiscoverScreen() {
                 overScrollMode="never"
               />
 
+              <BannerAd style={styles.bannerAd} />
+
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>All Stations</Text>
               </View>
@@ -197,7 +188,7 @@ export default function DiscoverScreen() {
             overScrollMode="never"
           />
         </ScrollView>
-      </LinearGradient>
+      </GradientView>
     </View>
   );
 }
@@ -214,17 +205,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
   },
-  scrollContent: {
-    paddingBottom: 100, // Add some padding at the bottom for the mini-player
-  },
   header: {
     marginTop: 60,
     marginBottom: 24,
-  },
-  headerTitle: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 28,
-    color: '#fff',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -234,16 +217,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 24,
   },
+  searchIcon: {
+    marginRight: 12,
+  },
   searchInput: {
     flex: 1,
     height: 48,
     color: '#fff',
     fontFamily: 'Inter_400Regular',
     fontSize: 16,
-    marginLeft: 12,
-  },
-  clearButton: {
-    padding: 4,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -318,5 +300,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: 'rgba(255,255,255,0.6)',
+  },
+  bannerAd: {
+    marginVertical: 16,
   },
 }); 

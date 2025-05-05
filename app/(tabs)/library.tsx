@@ -1,11 +1,13 @@
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, Modal, TextInput, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
 import { stations } from '../../data/stations';
+import { StatusBar } from 'expo-status-bar';
+import { BannerAd } from '../components/BannerAd';
+import { GradientView } from '../components/GradientView';
 
 type Playlist = {
   id: string;
@@ -183,21 +185,18 @@ export default function LibraryScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
+      <StatusBar style="light" />
+      <GradientView
         colors={['rgba(0,0,0,0.8)', 'rgba(25,25,112,0.8)']}
         style={styles.gradient}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Library</Text>
-            <TouchableOpacity
-              style={styles.createButton}
-              onPress={createNewPlaylist}
-            >
-              <Ionicons name="add" size={24} color="#FF1B6D" />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.header}>
+          <Text style={styles.title}>Your Library</Text>
+        </View>
 
+        <BannerAd style={styles.bannerAd} />
+
+        <View style={styles.content}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Favorites</Text>
             {favoriteStations.length > 0 ? (
@@ -236,7 +235,7 @@ export default function LibraryScreen() {
             )}
           </View>
         </View>
-      </LinearGradient>
+      </GradientView>
 
       <Modal
         visible={showCreateModal}
@@ -298,7 +297,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerTitle: {
+  title: {
     fontFamily: 'Inter_700Bold',
     fontSize: 24,
     color: '#fff',
@@ -479,5 +478,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: 'rgba(255,255,255,0.4)',
+  },
+  bannerAd: {
+    marginBottom: 16,
   },
 }); 

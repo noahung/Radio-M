@@ -26,29 +26,27 @@
         "UIBackgroundModes": [
           "audio"
         ],
-        "NSMicrophoneUsageDescription": "This app does not require microphone access."
+        "NSMicrophoneUsageDescription": "This app does not require microphone access.",
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
+          }
+        ]
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
       "package": "com.noah.radiom",
-      "versionCode": 1,
-      "permissions": [
-        "INTERNET",
-        "FOREGROUND_SERVICE",
-        "MODIFY_AUDIO_SETTINGS",
-        "POST_NOTIFICATIONS",
-        "FOREGROUND_SERVICE_MEDIA_PLAYBACK"
-      ],
-      "softwareKeyboardLayoutMode": "pan"
+      "permissions": ["android.permission.INTERNET", "android.permission.MODIFY_AUDIO_SETTINGS"]
     },
     "web": {
       "bundler": "metro",
-      "output": "single",
-      "favicon": "./assets/images/icon.png"
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -57,6 +55,23 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#000000"
+        }
+      ],
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "This identifier will be used to deliver personalized ads to you."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0",
+            "kotlinVersion": "1.8.20"
+          }
         }
       ]
     ],
@@ -68,7 +83,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "ae05cab0-8f78-4cdd-b43b-be80fc35a8d0"
+        "projectId": "radiom-app"
       }
     }
   }

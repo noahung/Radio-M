@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Dimensions, Alert, ImageSourcePropType } from 'react-native';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { StatusBar } from 'expo-status-bar';
 import { stations } from '../../data/stations';
@@ -10,6 +9,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudio } from '../contexts/AudioContext';
 import { useFocusEffect } from '@react-navigation/native';
 import React from 'react';
+import { BannerAd } from '../components/BannerAd';
+import AdService from '../services/AdService';
+import { GradientView } from '../components/GradientView';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 8;
@@ -70,6 +72,11 @@ export default function HomeScreen() {
   useEffect(() => {
     loadStationsWithFavorites();
     loadUserData();
+    // Show interstitial ad when opening a station
+    const showInterstitial = async () => {
+      await AdService.getInstance().showInterstitialAd();
+    };
+    showInterstitial();
   }, []);
 
   const loadStationsWithFavorites = async () => {
@@ -138,7 +145,7 @@ export default function HomeScreen() {
       style={styles.stationCard}
       onPress={() => router.push(`/player/${item.id}`)}
     >
-      <LinearGradient
+      <GradientView
         colors={['rgba(255,27,109,0.8)', 'rgba(69,39,160,0.8)']}
         style={styles.cardBackground}
       >
@@ -149,8 +156,8 @@ export default function HomeScreen() {
             resizeMode="cover"
           />
         ) : null}
-      </LinearGradient>
-      <LinearGradient
+      </GradientView>
+      <GradientView
         colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)']}
         style={styles.cardGradient}
       >
@@ -174,7 +181,7 @@ export default function HomeScreen() {
         <View style={styles.playButton}>
           <Ionicons name="play" size={24} color="#fff" />
         </View>
-      </LinearGradient>
+      </GradientView>
     </TouchableOpacity>
   );
 
@@ -200,7 +207,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <LinearGradient
+      <GradientView
         colors={['rgba(0,0,0,0.8)', 'rgba(25,25,112,0.8)']}
         style={styles.gradient}
       >
@@ -221,6 +228,8 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        <BannerAd style={styles.bannerAd} />
+
         <FlatList
           data={randomizedStations}
           renderItem={renderStationCard}
@@ -230,7 +239,7 @@ export default function HomeScreen() {
           contentContainerStyle={styles.stationGrid}
           showsVerticalScrollIndicator={false}
         />
-      </LinearGradient>
+      </GradientView>
     </View>
   );
 }
@@ -352,5 +361,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'flex-end',
+  },
+  bannerAd: {
+    marginBottom: 16,
   },
 }); 

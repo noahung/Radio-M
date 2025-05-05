@@ -1,6 +1,38 @@
 # Radio M
 
-A modern radio streaming app built with Expo and React Native.
+A mobile app for streaming radio stations.
+
+## Building the App
+
+### Prerequisites
+- Node.js
+- Java Development Kit (JDK)
+- Android SDK
+
+### Setting Up
+1. Install dependencies:
+```
+npm install
+```
+
+2. Generate a keystore file for signing (only needed once):
+```
+./generate-keystore.ps1
+```
+
+### Building for Android
+To build the release APK:
+```
+./build-release.ps1
+```
+
+The APK will be available at `android/app/build/outputs/apk/release/app-release.apk`
+
+## AdMob Configuration
+The app is configured with the following AdMob IDs:
+- App ID: ca-app-pub-8365683438300000~1959432979
+- Banner ad ID: ca-app-pub-8365683438300000/7388995261
+- Interstitial ad ID: ca-app-pub-8365683438300000/6515972694
 
 ## Features
 
