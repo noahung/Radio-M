@@ -8,6 +8,7 @@ import { stations } from '../../data/stations';
 import { StatusBar } from 'expo-status-bar';
 import { BannerAd } from '../components/BannerAd';
 import { GradientView } from '../components/GradientView';
+import DarkModal from '../components/DarkModal';
 
 type Playlist = {
   id: string;
@@ -22,6 +23,12 @@ export default function LibraryScreen() {
   const [favoriteStations, setFavoriteStations] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalConfirmText, setModalConfirmText] = useState('OK');
+  const [modalShowCancel, setModalShowCancel] = useState(false);
+  const [modalOnConfirm, setModalOnConfirm] = useState<(() => void) | undefined>(undefined);
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -69,7 +76,12 @@ export default function LibraryScreen() {
 
   const handleCreatePlaylist = async () => {
     if (!newPlaylistName.trim()) {
-      Alert.alert('Error', 'Please enter a playlist name');
+      setModalTitle('Error');
+      setModalMessage('Please enter a playlist name');
+      setModalConfirmText('OK');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
       return;
     }
 
@@ -87,37 +99,38 @@ export default function LibraryScreen() {
       setPlaylists(updatedPlaylists);
       setNewPlaylistName('');
       setShowCreateModal(false);
-      Alert.alert('Success', 'Playlist created successfully');
+      setModalTitle('Success');
+      setModalMessage('Playlist created successfully');
+      setModalConfirmText('OK');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
     } catch (error) {
       console.error('Error saving playlist:', error);
-      Alert.alert('Error', 'Failed to create playlist');
+      setModalTitle('Error');
+      setModalMessage('Failed to create playlist');
+      setModalConfirmText('OK');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
     }
   };
 
   const deletePlaylist = async (playlistId: string) => {
-    Alert.alert(
-      'Delete Playlist',
-      'Are you sure you want to delete this playlist?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            const updatedPlaylists = playlists.filter(p => p.id !== playlistId);
-            try {
-              await AsyncStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
-              setPlaylists(updatedPlaylists);
-            } catch (error) {
-              console.error('Error deleting playlist:', error);
-            }
-          },
-        },
-      ]
-    );
+    setModalTitle('Delete Playlist');
+    setModalMessage('Are you sure you want to delete this playlist?');
+    setModalConfirmText('Delete');
+    setModalShowCancel(true);
+    setModalOnConfirm(() => async () => {
+      const updatedPlaylists = playlists.filter(p => p.id !== playlistId);
+      try {
+        await AsyncStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
+        setPlaylists(updatedPlaylists);
+      } catch (error) {
+        console.error('Error deleting playlist:', error);
+      }
+    });
+    setModalVisible(true);
   };
 
   const getPlaylistStations = (stationIds: string[] | undefined) => {
@@ -274,6 +287,19 @@ export default function LibraryScreen() {
           </View>
         </View>
       </Modal>
+
+      <DarkModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        confirmText={modalConfirmText}
+        showCancel={modalShowCancel}
+        onClose={() => setModalVisible(false)}
+        onConfirm={() => {
+          if (modalOnConfirm) modalOnConfirm();
+          setModalVisible(false);
+        }}
+      />
     </View>
   );
 }

@@ -12,6 +12,7 @@ import React from 'react';
 import { BannerAd } from '../components/BannerAd';
 import AdService from '../services/AdService';
 import { GradientView } from '../components/GradientView';
+import DarkModal from '../components/DarkModal';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = 8;
@@ -53,6 +54,14 @@ export default function HomeScreen() {
   const [userAvatar, setUserAvatar] = useState('avatar1.png');
   const audioContext = useAudio();
   const routerNav = router;
+
+  // Add state for modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalConfirmText, setModalConfirmText] = useState('OK');
+  const [modalShowCancel, setModalShowCancel] = useState(false);
+  const [modalOnConfirm, setModalOnConfirm] = useState<(() => void) | undefined>(undefined);
 
   // Function to shuffle array using Fisher-Yates algorithm
   const shuffleArray = (array: any[]) => {
@@ -136,7 +145,12 @@ export default function HomeScreen() {
       );
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      Alert.alert('Error', 'Failed to update favorites');
+      setModalTitle('Error');
+      setModalMessage('Failed to update favorites');
+      setModalConfirmText('OK');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
     }
   };
 
@@ -240,6 +254,18 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         />
       </GradientView>
+      <DarkModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        confirmText={modalConfirmText}
+        showCancel={modalShowCancel}
+        onClose={() => setModalVisible(false)}
+        onConfirm={() => {
+          if (modalOnConfirm) modalOnConfirm();
+          setModalVisible(false);
+        }}
+      />
     </View>
   );
 }

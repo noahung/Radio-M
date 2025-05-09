@@ -47,7 +47,8 @@ export const configureAudioSession = async () => {
 export const showPlaybackNotification = async (
   stationName: string,
   description: string,
-  isPlaying: boolean
+  isPlaying: boolean,
+  imageUrl?: string
 ) => {
   if (Platform.OS === 'web') return;
 
@@ -94,6 +95,9 @@ export const showPlaybackNotification = async (
               showPreviousButton: false,
             },
           },
+          // Expo Notifications does not support custom images in notification yet
+          // If/when supported, add imageUrl here
+          // largeIcon: imageUrl, // <-- Not supported in Expo as of 2024
         }),
       },
       trigger: null,

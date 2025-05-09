@@ -52,6 +52,21 @@ export const translations = {
     checkConnection: 'Please check your internet connection and try again.',
     stationUnavailable: 'The station might be temporarily unavailable.',
     tryAgain: 'Please try again.',
+    
+    // Donate/Support
+    support: 'Support',
+    supportDeveloper: 'Support the Developer',
+    supportDescription: 'If you enjoy using Radio M, consider supporting its development. Your contribution helps maintain and improve the app.',
+    donateNow: 'Donate Now',
+    requestStations: 'Request Stations',
+    reportIssue: 'Report an Issue',
+    selectLanguage: 'Select Language',
+    close: 'Close',
+    createNewPlaylist: 'Create New Playlist',
+    stations: 'stations',
+    removeFromFavorites: 'Remove from Favorites',
+    removeFromFavoritesConfirm: 'Are you sure you want to remove this station from your favorites?',
+    remove: 'Remove',
   },
   my: {
     // General
@@ -106,6 +121,21 @@ export const translations = {
     checkConnection: 'သင့်အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။',
     stationUnavailable: 'ရေဒီယိုလှိုင်းသည် ယာယီမရနိုင်ပါ။',
     tryAgain: 'ထပ်မံကြိုးစားပါ။',
+    
+    // Donate/Support
+    support: 'ထောက်ခံမှု',
+    supportDeveloper: 'ဖန်တီးသူအား ထောက်ခံပါ',
+    supportDescription: 'Radio M ကို သုံးရတာကြိုက်တယ်ဆိုရင် ဖန်တီးသူအား ထောက်ခံပေးပါ။ သင့်ထောက်ခံမှုသည် app ကို ထိန်းသိမ်းတိုးတက်စေပါသည်။',
+    donateNow: 'လှူဒါန်းရန်',
+    requestStations: 'ရေဒီယိုလှိုင်းတောင်းဆိုရန်',
+    reportIssue: 'ပြဿနာတင်ပြရန်',
+    selectLanguage: 'ဘာသာစကားရွေးချယ်ပါ',
+    close: 'ပိတ်ရန်',
+    createNewPlaylist: 'သီချင်းစာရင်းအသစ်ပြုလုပ်ရန်',
+    stations: 'လှိုင်းများ',
+    removeFromFavorites: 'အကြိုက်ဆုံးမှ ဖယ်ရှားရန်',
+    removeFromFavoritesConfirm: 'ဤရေဒီယိုလှိုင်းကို အကြိုက်ဆုံးမှ ဖယ်ရှားရန် သေချာပါသလား?',
+    remove: 'ဖယ်ရှားရန်',
   },
 };
 

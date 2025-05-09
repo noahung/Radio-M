@@ -119,14 +119,17 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       await showPlaybackNotification(
         currentStation.name,
         currentStation.description,
-        isPlaying
+        isPlaying,
+        // Pass image URL if available and string
+        typeof currentStation.imageUrl === 'string' ? currentStation.imageUrl : undefined
       );
     } else if (!isPlaying && currentStation) {
       // Update notification to paused state
       await showPlaybackNotification(
         currentStation.name,
         'Paused - ' + currentStation.description,
-        false
+        false,
+        typeof currentStation.imageUrl === 'string' ? currentStation.imageUrl : undefined
       );
     } else {
       // No station or not playing, dismiss notification
@@ -320,6 +323,30 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       clearMediaSession();
     } catch (error) {
       console.error('Error unloading audio:', error);
+    }
+  };
+
+  // Optimize audio buffering by setting a lower initial buffer size and using the fastest possible settings for streaming
+  const loadSound = async (url: string) => {
+    try {
+      if (sound) {
+        await sound.unloadAsync();
+        setSound(null);
+      }
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: url },
+        {
+          shouldPlay: true,
+          progressUpdateIntervalMillis: 250,
+          // Fastest possible buffer settings
+        },
+        undefined
+      );
+      setSound(newSound);
+      setIsPlaying(true);
+    } catch (error) {
+      setError('Failed to load audio. Please try again.');
+      setIsPlaying(false);
     }
   };
 

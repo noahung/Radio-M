@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, router } from 'expo-router';
 import { stations } from '../../data/stations';
+import DarkModal from '../components/DarkModal';
 
 type Playlist = {
   id: string;
@@ -24,6 +25,12 @@ export default function PlaylistScreen() {
     Inter_500Medium,
     Inter_600SemiBold,
   });
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalConfirmText, setModalConfirmText] = useState('OK');
+  const [modalShowCancel, setModalShowCancel] = useState(false);
+  const [modalOnConfirm, setModalOnConfirm] = useState<(() => void) | undefined>(undefined);
 
   useEffect(() => {
     loadPlaylist();
@@ -39,16 +46,31 @@ export default function PlaylistScreen() {
         if (foundPlaylist) {
           setPlaylist(foundPlaylist);
         } else {
-          Alert.alert('Error', 'Playlist not found');
+          setModalTitle('Error');
+          setModalMessage('Playlist not found');
+          setModalConfirmText('OK');
+          setModalShowCancel(false);
+          setModalOnConfirm(undefined);
+          setModalVisible(true);
           router.back();
         }
       } else {
-        Alert.alert('Error', 'No playlists found');
+        setModalTitle('Error');
+        setModalMessage('No playlists found');
+        setModalConfirmText('OK');
+        setModalShowCancel(false);
+        setModalOnConfirm(undefined);
+        setModalVisible(true);
         router.back();
       }
     } catch (error) {
       console.error('Error loading playlist:', error);
-      Alert.alert('Error', 'Failed to load playlist');
+      setModalTitle('Error');
+      setModalMessage('Failed to load playlist');
+      setModalConfirmText('OK');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
       router.back();
     } finally {
       setIsLoading(false);
@@ -60,7 +82,12 @@ export default function PlaylistScreen() {
 
     const availableStations = stations.filter(station => !playlist.stationIds.includes(station.id));
     if (availableStations.length === 0) {
-      Alert.alert('No Stations Available', 'All stations are already in this playlist.');
+      setModalTitle('No Stations Available');
+      setModalMessage('All stations are already in this playlist.');
+      setModalConfirmText('OK');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
       return;
     }
 
@@ -92,47 +119,43 @@ export default function PlaylistScreen() {
       { text: 'Cancel', style: 'cancel' }
     ];
 
-    Alert.alert('Add Station', 'Select a station to add:', buttons);
+    setModalTitle('Add Station');
+    setModalMessage('Select a station to add:');
+    setModalConfirmText('OK');
+    setModalShowCancel(false);
+    setModalOnConfirm(undefined);
+    setModalVisible(true);
   };
 
   const removeStation = async (stationId: string) => {
     if (!playlist) return;
 
-    Alert.alert(
-      'Remove Station',
-      'Are you sure you want to remove this station from the playlist?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const playlistsData = await AsyncStorage.getItem('playlists');
-              if (playlistsData) {
-                const playlists: Playlist[] = JSON.parse(playlistsData);
-                const updatedPlaylists = playlists.map(p => {
-                  if (p.id === playlist.id) {
-                    return {
-                      ...p,
-                      stationIds: p.stationIds.filter(id => id !== stationId),
-                    };
-                  }
-                  return p;
-                });
-                await AsyncStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
-                loadPlaylist();
-              }
-            } catch (error) {
-              console.error('Error removing station:', error);
+    setModalTitle('Remove Station');
+    setModalMessage('Are you sure you want to remove this station from the playlist?');
+    setModalConfirmText('Remove');
+    setModalShowCancel(true);
+    setModalOnConfirm(() => async () => {
+      try {
+        const playlistsData = await AsyncStorage.getItem('playlists');
+        if (playlistsData) {
+          const playlists: Playlist[] = JSON.parse(playlistsData);
+          const updatedPlaylists = playlists.map(p => {
+            if (p.id === playlist.id) {
+              return {
+                ...p,
+                stationIds: p.stationIds.filter(id => id !== stationId),
+              };
             }
-          },
-        },
-      ]
-    );
+            return p;
+          });
+          await AsyncStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
+          loadPlaylist();
+        }
+      } catch (error) {
+        console.error('Error removing station:', error);
+      }
+    });
+    setModalVisible(true);
   };
 
   const renderStation = ({ item: stationId }: { item: string }) => {
@@ -224,6 +247,18 @@ export default function PlaylistScreen() {
           )}
         </View>
       </LinearGradient>
+      <DarkModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        confirmText={modalConfirmText}
+        showCancel={modalShowCancel}
+        onClose={() => setModalVisible(false)}
+        onConfirm={() => {
+          if (modalOnConfirm) modalOnConfirm();
+          setModalVisible(false);
+        }}
+      />
     </View>
   );
 }

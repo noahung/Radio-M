@@ -42,84 +42,78 @@ export default function DonateScreen() {
   };
 
   return (
-    <View style={[styles.container, theme === 'light' && { backgroundColor: '#F5F5F7' }]}>
-      <StatusBar style={theme === 'dark' ? "light" : "dark"} />
-      
+    <View style={styles.container}>
+      <StatusBar style="light" />
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, theme === 'light' && styles.lightText]}>
-          Support
+        <Text style={styles.headerTitle}>
+          {t.support}
         </Text>
       </View>
-
       <View style={styles.content}>
-        <View style={[styles.card, theme === 'light' && styles.lightCard]}>
-          <Text style={[styles.cardTitle, theme === 'light' && styles.lightText]}>
-            Support the Developer
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>
+            {t.supportDeveloper}
           </Text>
-          <Text style={[styles.cardDescription, theme === 'light' && styles.lightSecondaryText]}>
-            If you enjoy using Radio M, consider supporting its development. Your contribution helps maintain and improve the app.
+          <Text style={styles.cardDescription}>
+            {t.supportDescription}
           </Text>
           <TouchableOpacity 
             style={styles.donateButton}
             onPress={() => Linking.openURL('https://paypal.me/noahaung')}
           >
             <Ionicons name="heart" size={20} color="#fff" style={styles.buttonIcon} />
-            <Text style={styles.buttonText}>Donate Now</Text>
+            <Text style={styles.buttonText}>{t.donateNow}</Text>
           </TouchableOpacity>
         </View>
-
         <TouchableOpacity 
-          style={[styles.actionButton, theme === 'light' && styles.lightActionButton]}
+          style={styles.actionButton}
           onPress={() => setShowLanguageModal(true)}
         >
           <Ionicons 
             name="language-outline" 
             size={24} 
-            color={theme === 'dark' ? "#fff" : "#000"} 
+            color="#fff" 
             style={styles.actionIcon}
           />
-          <Text style={[styles.actionText, theme === 'light' && styles.lightText]}>
-            Language / ဘာသာစကား
+          <Text style={styles.actionText}>
+            {t.language} / ဘာသာစကား
           </Text>
           <View style={styles.languageInfo}>
-            <Text style={[styles.languageText, theme === 'light' && styles.lightSecondaryText]}>
-              {language === 'en' ? 'English' : 'မြန်မာ'}
+            <Text style={styles.languageText}>
+              {language === 'en' ? t.english : t.burmese}
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={theme === 'dark' ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"} />
+            <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.4)" />
           </View>
         </TouchableOpacity>
-
         <TouchableOpacity 
-          style={[styles.actionButton, theme === 'light' && styles.lightActionButton]}
+          style={styles.actionButton}
           onPress={handleRequestStations}
         >
           <Ionicons 
             name="radio-outline" 
             size={24} 
-            color={theme === 'dark' ? "#fff" : "#000"} 
+            color="#fff" 
             style={styles.actionIcon}
           />
-          <Text style={[styles.actionText, theme === 'light' && styles.lightText]}>
-            Request Stations
+          <Text style={styles.actionText}>
+            {t.requestStations}
           </Text>
         </TouchableOpacity>
-
         <TouchableOpacity 
-          style={[styles.actionButton, theme === 'light' && styles.lightActionButton]}
+          style={styles.actionButton}
           onPress={handleReportIssue}
         >
           <Ionicons 
             name="bug-outline" 
             size={24} 
-            color={theme === 'dark' ? "#fff" : "#000"} 
+            color="#fff" 
             style={styles.actionIcon}
           />
-          <Text style={[styles.actionText, theme === 'light' && styles.lightText]}>
-            Report an Issue
+          <Text style={styles.actionText}>
+            {t.reportIssue}
           </Text>
         </TouchableOpacity>
       </View>
-
       <Modal
         visible={showLanguageModal}
         transparent={true}
@@ -127,37 +121,35 @@ export default function DonateScreen() {
         onRequestClose={() => setShowLanguageModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, theme === 'light' && styles.lightModalContent]}>
+          <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, theme === 'light' && styles.lightText]}>
-                Select Language / ဘာသာစကားရွေးချယ်ပါ
+              <Text style={styles.modalTitle}>
+                {t.selectLanguage}
               </Text>
               <TouchableOpacity
                 onPress={() => setShowLanguageModal(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color={theme === 'dark' ? "#fff" : "#000"} />
+                <Ionicons name="close" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
-            
             <TouchableOpacity
               style={[styles.languageOption, language === 'en' && styles.selectedLanguage]}
               onPress={() => handleLanguageChange('en')}
             >
-              <Text style={[styles.languageOptionText, theme === 'light' && styles.lightText]}>
-                English
+              <Text style={styles.languageOptionText}>
+                {t.english}
               </Text>
               {language === 'en' && (
                 <Ionicons name="checkmark" size={24} color="#FF1B6D" />
               )}
             </TouchableOpacity>
-
             <TouchableOpacity
               style={[styles.languageOption, language === 'my' && styles.selectedLanguage]}
               onPress={() => handleLanguageChange('my')}
             >
-              <Text style={[styles.languageOptionText, theme === 'light' && styles.lightText]}>
-                မြန်မာ
+              <Text style={styles.languageOptionText}>
+                {t.burmese}
               </Text>
               {language === 'my' && (
                 <Ionicons name="checkmark" size={24} color="#FF1B6D" />

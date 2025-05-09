@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
 import { StatusBar } from 'expo-status-bar';
@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import DarkModal from './components/DarkModal';
 
 type SettingItem = {
   id: string;
@@ -55,7 +56,14 @@ export default function SettingsScreen() {
       description: 'Change app language',
       icon: 'language-outline',
       type: 'select',
-      action: () => Alert.alert('Coming Soon', 'Language selection will be available in a future update'),
+      action: () => {
+        setModalTitle('Coming Soon');
+        setModalMessage('Language selection will be available in a future update');
+        setModalConfirmText('OK');
+        setModalShowCancel(false);
+        setModalOnConfirm(undefined);
+        setModalVisible(true);
+      },
     },
     {
       id: 'about',
@@ -63,9 +71,23 @@ export default function SettingsScreen() {
       description: 'App version and information',
       icon: 'information-circle-outline',
       type: 'action',
-      action: () => Alert.alert('About', 'Radio M v1.0.0\n\nYour favorite radio streaming app'),
+      action: () => {
+        setModalTitle('About');
+        setModalMessage('Radio M v1.0.0\n\nYour favorite radio streaming app');
+        setModalConfirmText('OK');
+        setModalShowCancel(false);
+        setModalOnConfirm(undefined);
+        setModalVisible(true);
+      },
     },
   ]);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalConfirmText, setModalConfirmText] = useState('OK');
+  const [modalShowCancel, setModalShowCancel] = useState(false);
+  const [modalOnConfirm, setModalOnConfirm] = useState<(() => void) | undefined>(undefined);
 
   useEffect(() => {
     loadSettings();
@@ -105,7 +127,12 @@ export default function SettingsScreen() {
       await AsyncStorage.setItem('appSettings', JSON.stringify(settingsToSave));
     } catch (error) {
       console.error('Error saving settings:', error);
-      Alert.alert('Error', 'Failed to save settings');
+      setModalTitle('Error');
+      setModalMessage('Failed to save settings');
+      setModalConfirmText('OK');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
     }
   };
 
@@ -162,6 +189,18 @@ export default function SettingsScreen() {
           </View>
         </View>
       </LinearGradient>
+      <DarkModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        confirmText={modalConfirmText}
+        showCancel={modalShowCancel}
+        onClose={() => setModalVisible(false)}
+        onConfirm={() => {
+          if (modalOnConfirm) modalOnConfirm();
+          setModalVisible(false);
+        }}
+      />
     </View>
   );
 }

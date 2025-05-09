@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Share, Alert, TextInput, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Share, TextInput, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { GradientView } from '../components/GradientView';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
 import { StatusBar } from 'expo-status-bar';
@@ -10,6 +10,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { stations } from '../../data/stations';
 import Slider from '@react-native-community/slider';
 import { useAudio } from '../contexts/AudioContext';
+import { translations } from '../i18n/translations';
+import { useSettings } from '../contexts/SettingsContext';
+import DarkModal from '../components/DarkModal';
 
 const SLEEP_TIMER_OPTIONS = [
   { label: '5 minutes', value: 5 },
@@ -56,6 +59,7 @@ export default function PlayerScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFavorite, setIsFavorite] = useState(false);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
+  const [showRemoveFavoriteModal, setShowRemoveFavoriteModal] = useState(false);
   
   const audioState = useAudio();
   const { sleepTimer, setSleepTimer } = audioState;
@@ -67,6 +71,16 @@ export default function PlayerScreen() {
   });
 
   const station = stations.find((s) => s.id === id);
+
+  const { language } = useSettings();
+  const t = translations[language];
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalConfirmText, setModalConfirmText] = useState('OK');
+  const [modalShowCancel, setModalShowCancel] = useState(false);
+  const [modalOnConfirm, setModalOnConfirm] = useState<(() => void) | undefined>(undefined);
 
   const loadSound = async () => {
     try {
@@ -134,32 +148,12 @@ export default function PlayerScreen() {
 
     const errorInfo = AUDIO_ERROR_MESSAGES[errorType as keyof typeof AUDIO_ERROR_MESSAGES];
     
-    Alert.alert(
-      errorInfo.title,
-      errorInfo.message,
-      [
-        ...(errorInfo.retry ? [{
-          text: 'Retry',
-          onPress: async () => {
-            try {
-              setIsBuffering(true);
-              if (audioState.sound) {
-                await audioState.sound.unloadAsync();
-                audioState.setSound(null);
-              }
-              await loadSound();
-            } catch (retryError) {
-              console.error('Error retrying:', retryError);
-              handleAudioError(retryError);
-            }
-          },
-        }] : []),
-        {
-          text: 'OK',
-          style: 'cancel',
-        },
-      ]
-    );
+    setModalTitle(errorInfo.title);
+    setModalMessage(errorInfo.message);
+    setModalConfirmText('OK');
+    setModalShowCancel(false);
+    setModalOnConfirm(undefined);
+    setModalVisible(true);
 
     setIsBuffering(false);
     audioState.setSound(null);
@@ -277,7 +271,11 @@ export default function PlayerScreen() {
         } else {
           // Fallback for browsers that don't support Web Share API
           await navigator.clipboard.writeText(`${shareMessage}\n${shareUrl}`);
-          Alert.alert('Success', 'Link copied to clipboard!');
+          setModalTitle('Success');
+          setModalMessage('Link copied to clipboard!');
+          setModalShowCancel(false);
+          setModalOnConfirm(undefined);
+          setModalVisible(true);
         }
       } else {
         // For mobile platforms
@@ -301,11 +299,12 @@ export default function PlayerScreen() {
       }
     } catch (error) {
       console.error('Error sharing:', error);
-      Alert.alert(
-        'Share Error',
-        'Unable to share at this time. Please try again later.',
-        [{ text: 'OK' }]
-      );
+      setModalTitle('Share Error');
+      setModalMessage('Unable to share at this time. Please try again later.');
+      setModalConfirmText('OK');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
     }
   };
 
@@ -334,10 +333,18 @@ export default function PlayerScreen() {
       setPlaylists(updatedPlaylists);
       setNewPlaylistName('');
       setShowPlaylistModal(false);
-      Alert.alert('Success', 'Playlist created successfully');
+      setModalTitle('Success');
+      setModalMessage('Playlist created successfully');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
     } catch (error) {
       console.error('Error creating playlist:', error);
-      Alert.alert('Error', 'Failed to create playlist');
+      setModalTitle('Error');
+      setModalMessage('Failed to create playlist');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
     }
   };
 
@@ -361,10 +368,18 @@ export default function PlayerScreen() {
       await AsyncStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
       setPlaylists(updatedPlaylists);
       setShowPlaylistModal(false);
-      Alert.alert('Success', 'Station added to playlist');
+      setModalTitle('Success');
+      setModalMessage('Station added to playlist');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
     } catch (error) {
       console.error('Error adding to playlist:', error);
-      Alert.alert('Error', 'Failed to add station to playlist');
+      setModalTitle('Error');
+      setModalMessage('Failed to add station to playlist');
+      setModalShowCancel(false);
+      setModalOnConfirm(undefined);
+      setModalVisible(true);
     }
   };
 
@@ -426,25 +441,7 @@ export default function PlayerScreen() {
       const favoriteIds = favorites ? JSON.parse(favorites) : [];
       
       if (isFavorite) {
-        Alert.alert(
-          'Remove from Favorites',
-          'Are you sure you want to remove this station from your favorites?',
-          [
-            {
-              text: 'Cancel',
-              style: 'cancel',
-            },
-            {
-              text: 'Remove',
-              style: 'destructive',
-              onPress: async () => {
-                const updatedFavorites = favoriteIds.filter((id: string) => id !== station.id);
-                await AsyncStorage.setItem('favoriteStations', JSON.stringify(updatedFavorites));
-                setIsFavorite(false);
-              },
-            },
-          ]
-        );
+        setShowRemoveFavoriteModal(true);
       } else {
         // Add to favorites immediately
         const updatedFavorites = [...favoriteIds, station.id];
@@ -596,7 +593,7 @@ export default function PlayerScreen() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Sleep Timer</Text>
+            <Text style={styles.modalTitle}>{t.sleepTimer}</Text>
             
             {SLEEP_TIMER_OPTIONS.map((option) => (
               <TouchableOpacity
@@ -622,7 +619,7 @@ export default function PlayerScreen() {
                 }}
               >
                 <Text style={[styles.timerOptionText, styles.cancelText]}>
-                  Cancel Timer
+                  {t.cancelTimer}
                 </Text>
               </TouchableOpacity>
             )}
@@ -631,7 +628,7 @@ export default function PlayerScreen() {
               style={styles.modalCancel}
               onPress={() => setShowSleepTimerModal(false)}
             >
-              <Text style={styles.modalCancelText}>Close</Text>
+              <Text style={styles.modalCancelText}>{t.close}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -645,21 +642,21 @@ export default function PlayerScreen() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add to Playlist</Text>
+            <Text style={styles.modalTitle}>{t.addToPlaylist}</Text>
             
             <TouchableOpacity
               style={styles.createPlaylistButton}
               onPress={() => setIsCreatingPlaylist(true)}
             >
               <Ionicons name="add-circle-outline" size={24} color="#FF1B6D" />
-              <Text style={styles.createPlaylistText}>Create New Playlist</Text>
+              <Text style={styles.createPlaylistText}>{t.createNewPlaylist}</Text>
             </TouchableOpacity>
 
             {isCreatingPlaylist && (
               <View style={styles.createPlaylistForm}>
                 <TextInput
                   style={styles.playlistNameInput}
-                  placeholder="Enter playlist name"
+                  placeholder={t.enterPlaylistName}
                   placeholderTextColor="rgba(255,255,255,0.6)"
                   value={newPlaylistName}
                   onChangeText={setNewPlaylistName}
@@ -674,7 +671,7 @@ export default function PlayerScreen() {
                     }
                   }}
                 >
-                  <Text style={styles.createButtonText}>Create</Text>
+                  <Text style={styles.createButtonText}>{t.create}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -687,7 +684,7 @@ export default function PlayerScreen() {
               >
                 <Text style={styles.playlistName}>{playlist.name}</Text>
                 <Text style={styles.playlistCount}>
-                  {(playlist.stationIds || []).length} stations
+                  {(playlist.stationIds || []).length} {t.stations}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -700,11 +697,59 @@ export default function PlayerScreen() {
                 setNewPlaylistName('');
               }}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={styles.modalCancelText}>{t.cancel}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={showRemoveFavoriteModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowRemoveFavoriteModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t.removeFromFavorites}</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: 24 }}>{t.removeFromFavoritesConfirm}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setShowRemoveFavoriteModal(false)}
+              >
+                <Text style={styles.modalButtonText}>{t.cancel}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCreate]}
+                onPress={async () => {
+                  const favorites = await AsyncStorage.getItem('favoriteStations');
+                  const favoriteIds = favorites ? JSON.parse(favorites) : [];
+                  const updatedFavorites = favoriteIds.filter((id: string) => id !== station.id);
+                  await AsyncStorage.setItem('favoriteStations', JSON.stringify(updatedFavorites));
+                  setIsFavorite(false);
+                  setShowRemoveFavoriteModal(false);
+                }}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonTextCreate]}>{t.remove}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <DarkModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        confirmText={modalConfirmText}
+        showCancel={modalShowCancel}
+        onClose={() => setModalVisible(false)}
+        onConfirm={() => {
+          if (modalOnConfirm) modalOnConfirm();
+          setModalVisible(false);
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -952,5 +997,23 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: '#FF1B6D',
+  },
+  modalButton: {
+    padding: 12,
+    borderRadius: 8,
+  },
+  modalButtonCancel: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  modalButtonCreate: {
+    backgroundColor: '#FF1B6D',
+  },
+  modalButtonText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 16,
+    color: '#fff',
+  },
+  modalButtonTextCreate: {
+    fontFamily: 'Inter_700Bold',
   },
 });
